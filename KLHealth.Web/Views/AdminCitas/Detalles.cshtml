@@ -1,0 +1,175 @@
+﻿@model KLHealth.Web.Models.Entities.Cita
+@{
+    Layout = "_LayoutAdmin";
+    var cultura = new System.Globalization.CultureInfo("es-ES");
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success border-0 shadow-sm mb-4 d-flex align-items-center gap-2"
+         style="border-radius: 10px; font-size: 0.9rem; background: #f0fdf4; color: #166534;">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <a href="@Url.Action("Index", "AdminCitas")" class="btn btn-outline-secondary mb-3" style="border-radius: 8px; border-color: #e2e8f0;">
+        <i class="bi bi-arrow-left me-2"></i>Volver al Calendario
+    </a>
+
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h1 class="fw-bold mb-1" style="font-size: 1.75rem; color: var(--blue-700); letter-spacing: -0.5px;">Detalles de la Cita</h1>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">Información completa y gestión de estado.</p>
+        </div>
+
+        @{
+            var badgeClass = Model.Estado switch
+            {
+                "Confirmada" => "bg-success bg-opacity-10 text-success",
+                "Pendiente" => "bg-warning bg-opacity-10 text-warning",
+                "Completada" => "bg-secondary bg-opacity-10 text-secondary",
+                "Cancelada" => "bg-danger bg-opacity-10 text-danger",
+                _ => "bg-primary bg-opacity-10 text-primary"
+            };
+        }
+        <span class="badge rounded-pill px-3 py-2 @badgeClass" style="font-size: 0.9rem; font-weight: 600;">
+            @Model.Estado.ToUpper()
+        </span>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- COLUMNA IZQUIERDA: INFORMACIÓN DE LA CITA -->
+    <div class="col-lg-8">
+        <!-- Datos del Paciente -->
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 14px;">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4" style="color: #0f172a; font-size: 1rem;">
+                    <i class="bi bi-person-badge me-2" style="color: var(--blue-700);"></i>Datos del Paciente
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="small text-muted mb-1">Nombre Completo</div>
+                        <div class="fw-semibold" style="color: #0f172a;">@(Model.Paciente?.Usuario?.NombreCompleto ?? "No registrado")</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="small text-muted mb-1">Número de Identificación</div>
+                        <div class="fw-semibold" style="color: #0f172a;">@(Model.Paciente?.NumeroIdentificacion ?? "N/A")</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="small text-muted mb-1">Correo Electrónico</div>
+                        <div class="fw-semibold" style="color: #0f172a;">@(Model.Paciente?.Usuario?.Email ?? "N/A")</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="small text-muted mb-1">Teléfono</div>
+                        <div class="fw-semibold" style="color: #0f172a;">@(Model.Paciente?.Usuario?.Telefono ?? "No registrado")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detalles de la Cita -->
+        <div class="card border-0 shadow-sm" style="border-radius: 14px;">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4" style="color: #0f172a; font-size: 1rem;">
+                    <i class="bi bi-calendar-event me-2" style="color: var(--blue-700);"></i>Detalles de la Cita
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="small text-muted mb-1">Fecha</div>
+                        <div class="fw-semibold" style="color: #0f172a;">@Model.FechaHoraInicio.ToString("dd 'de' MMMM, yyyy", cultura)</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="small text-muted mb-1">Hora</div>
+                        <div class="fw-semibold" style="color: #0f172a;">@Model.FechaHoraInicio.ToString("hh:mm tt", cultura)</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="small text-muted mb-1">Modalidad</div>
+                        <div class="fw-semibold" style="color: #0f172a;">
+                            <i class="bi @(Model.Tipo == "Virtual" ? "bi-camera-video" : "bi-geo-alt") me-1"></i>@Model.Tipo
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="small text-muted mb-1">Sala / Ubicación</div>
+                        <div class="fw-semibold" style="color: #0f172a;">@(Model.Sala ?? "Por asignar")</div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Motivo))
+                    {
+                        <div class="col-12">
+                            <div class="small text-muted mb-1">Motivo de la Consulta</div>
+                            <div class="fw-semibold p-3 rounded" style="background: #f8fafc; color: #0f172a; line-height: 1.6;">@Model.Motivo</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: MÉDICO Y GESTIÓN DE ESTADO -->
+    <div class="col-lg-4">
+        <!-- Datos del Médico -->
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 14px;">
+            <div class="card-body p-4 text-center">
+                <img src="@(Model.Medico?.FotoPerfilUrl ?? "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&h=200&fit=crop&crop=face")"
+                     alt="Médico"
+                     class="rounded-circle mb-3"
+                     style="width: 100px; height: 100px; object-fit: cover; border: 4px solid #dbeafe;">
+
+                <h5 class="fw-bold mb-1" style="color: #0f172a;">@Model.Medico?.Titulo @Model.Medico?.Usuario?.NombreCompleto</h5>
+                <p class="text-muted small mb-2">@(Model.Medico?.Especialidad?.Nombre ?? "Medicina General")</p>
+                <span class="badge bg-light text-dark px-3 py-2 rounded-pill" style="font-size: 0.75rem;">
+                    <i class="bi bi-patch-check me-1"></i>@Model.Medico?.NumeroLicencia
+                </span>
+            </div>
+        </div>
+
+        <!-- Gestión de Estado -->
+        <div class="card border-0 shadow-sm" style="border-radius: 14px;">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3" style="color: #0f172a; font-size: 1rem;">
+                    <i class="bi bi-toggles me-2" style="color: var(--blue-700);"></i>Gestión de Estado
+                </h5>
+                <p class="small text-muted mb-4">Cambie el estado de la cita según su progreso.</p>
+
+                <div class="d-grid gap-2">
+                    @if (Model.Estado != "Confirmada")
+                    {
+                        <form method="post" action="@Url.Action("CambiarEstado", "AdminCitas", new { id = Model.Id })">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="nuevoEstado" value="Confirmada" />
+                            <button type="submit" class="btn btn-success w-100 py-2" style="border-radius: 8px; font-weight: 600;">
+                                <i class="bi bi-check-circle me-2"></i>Confirmar Cita
+                            </button>
+                        </form>
+                    }
+
+                    @if (Model.Estado != "Completada" && Model.Estado != "Cancelada")
+                    {
+                        <form method="post" action="@Url.Action("CambiarEstado", "AdminCitas", new { id = Model.Id })">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="nuevoEstado" value="Completada" />
+                            <button type="submit" class="btn btn-secondary w-100 py-2" style="border-radius: 8px; font-weight: 600;">
+                                <i class="bi bi-check2-all me-2"></i>Marcar como Completada
+                            </button>
+                        </form>
+                    }
+
+                    @if (Model.Estado != "Cancelada")
+                    {
+                        <form method="post" action="@Url.Action("CambiarEstado", "AdminCitas", new { id = Model.Id })"
+                              onsubmit="return confirm('¿Está seguro de cancelar esta cita?');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="nuevoEstado" value="Cancelada" />
+                            <button type="submit" class="btn btn-outline-danger w-100 py-2" style="border-radius: 8px; font-weight: 600;">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar Cita
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

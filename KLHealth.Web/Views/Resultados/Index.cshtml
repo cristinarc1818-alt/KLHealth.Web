@@ -1,0 +1,313 @@
+﻿@model KLHealth.Web.Models.ViewModels.ResultadosViewModel
+@{
+    Layout = "_LayoutPaciente";
+    var cultura = new System.Globalization.CultureInfo("es-ES");
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h1 class="fw-bold mb-1" style="font-size: 1.8rem; color: #0f172a; letter-spacing: -0.5px;">Resultados Médicos</h1>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">Vea y descargue sus informes oficiales de laboratorio y diagnósticos.</p>
+        </div>
+        <button class="btn btn-outline-secondary" style="border-radius: 10px; font-size: 0.88rem;">
+            <i class="bi bi-funnel me-1"></i>Filtros
+        </button>
+    </div>
+</div>
+
+<!-- TABS SUPERIORES -->
+<div class="mb-4">
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="@Url.Action("Index", "Resultados", new { tab = "Todos", filtro = Model.FiltroActual })"
+           class="filter-tab @(Model.TabActual == "Todos" ? "active" : "")">
+            Todos los Resultados
+        </a>
+        <a href="@Url.Action("Index", "Resultados", new { tab = "Recientes", filtro = Model.FiltroActual })"
+           class="filter-tab @(Model.TabActual == "Recientes" ? "active" : "")">
+            Recientes
+        </a>
+        <a href="@Url.Action("Index", "Resultados", new { tab = "Marcados", filtro = Model.FiltroActual })"
+           class="filter-tab @(Model.TabActual == "Marcados" ? "active" : "")">
+            Marcados
+        </a>
+    </div>
+</div>
+
+<!-- FILTROS ACTIVOS -->
+@if (Model.FiltroActual != "Todos")
+{
+    <div class="mb-4 d-flex gap-2 align-items-center flex-wrap">
+        <span class="filter-badge">
+            Estado: @Model.FiltroActual
+            <a href="@Url.Action("Index", "Resultados", new { tab = Model.TabActual, filtro = "Todos" })" class="ms-2 text-decoration-none">
+                <i class="bi bi-x"></i>
+            </a>
+        </span>
+        <a href="@Url.Action("Index", "Resultados", new { tab = Model.TabActual, filtro = "Todos" })" class="text-decoration-none" style="font-size: 0.88rem; color: #1e3a8a;">
+            Borrar todo
+        </a>
+    </div>
+}
+
+<!-- LISTA DE RESULTADOS -->
+@if (Model.TodosLosResultados.Any())
+{
+    <div class="d-flex flex-column gap-3 mb-5">
+        @foreach (var resultado in Model.TodosLosResultados)
+        {
+            var esPendiente = resultado.Pendiente;
+            var (bgColor, textColor, estadoTexto) = esPendiente
+                ? ("#fef3c7", "#92400e", "En Revisión")
+                : ("#dcfce7", "#166534", "Completado");
+
+            if (resultado.Fecha < DateTime.Now.AddDays(-30))
+            {
+                estadoTexto = esPendiente ? "Pendiente" : "Completado";
+            }
+
+            var iconoTipo = resultado.Tipo.Contains("Radiología", StringComparison.OrdinalIgnoreCase)
+                            ? "bi-film"
+                            : (resultado.NombreExamen?.Contains("Lipídico", StringComparison.OrdinalIgnoreCase) == true ? "bi-droplet-half" : "bi-activity");
+
+            var nombreMedico = resultado.Medico?.Usuario?.NombreCompleto ?? "Dr. No asignado";
+
+            <div class="resultado-card-professional">
+                <div class="row align-items-center">
+                    <div class="col-md-7">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="resultado-icon-circle">
+                                <i class="bi @iconoTipo"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-1" style="font-size: 1.05rem; color: #0f172a;">
+                                    @(resultado.NombreExamen ?? resultado.Tipo)
+                                </h5>
+                                <div class="d-flex gap-3 flex-wrap" style="font-size: 0.82rem; color: #64748b;">
+                                    <span><i class="bi bi-calendar3 me-1"></i>@resultado.Fecha.ToString("dd MMM yyyy", cultura)</span>
+                                    <span><i class="bi bi-person me-1"></i>@nombreMedico</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                        <span class="badge rounded-pill px-3 py-2 mb-2 mb-md-0 me-md-3" style="background: @bgColor; color: @textColor; font-size: 0.78rem; font-weight: 600;">
+                            @estadoTexto
+                        </span>
+
+                        @if (!esPendiente)
+                        {
+                            <a href="@Url.Action("Detalles", "Resultados", new { id = resultado.Id })" class="btn btn-outline-primary btn-sm px-3 py-2 me-2" style="border-color: #1e3a8a; color: #1e3a8a; border-radius: 8px; font-size: 0.85rem;">
+                                Ver Resultado
+                            </a>
+                            <form method="post" action="@Url.Action("Descargar", "Resultados", new { id = resultado.Id })" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-secondary btn-sm px-2 py-2" style="border-radius: 8px;">
+                                    <i class="bi bi-download"></i>
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <button class="btn btn-outline-secondary btn-sm px-3 py-2" disabled style="border-radius: 8px; font-size: 0.85rem; opacity: 0.6;">
+                                Ver Resultado
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm px-2 py-2 ms-2" disabled style="border-radius: 8px; opacity: 0.6;">
+                                <i class="bi bi-download"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="empty-state-container mb-5">
+        <div class="empty-state-icon">
+            <i class="bi bi-file-earmark-medical"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-2">No hay resultados @(Model.TabActual == "Todos" ? "" : $"en '{Model.TabActual}'")</h4>
+        <p class="text-muted mb-0" style="font-size: 0.95rem;">
+            Los resultados de tus estudios aparecerán aquí una vez que el laboratorio los haya procesado.
+        </p>
+    </div>
+}
+
+<!-- TARJETAS INFERIORES -->
+<div class="row g-4 mb-4">
+    <!-- Último Resultado -->
+    <div class="col-md-4">
+        <div class="card border-0 h-100" style="background: #1e3a8a; color: white; border-radius: 12px;">
+            <div class="card-body p-4">
+                <div class="small mb-2" style="font-size: 0.75rem; opacity: 0.9; letter-spacing: 0.5px;">ÚLTIMO RESULTADO</div>
+                @if (Model.UltimoResultado != null)
+                {
+                    <h5 class="fw-bold mb-2" style="font-size: 1.1rem;">@(Model.UltimoResultado.NombreExamen ?? Model.UltimoResultado.Tipo)</h5>
+                    <p class="mb-0 small" style="font-size: 0.85rem; opacity: 0.9; line-height: 1.5;">
+                        Todos los valores dentro del rango saludable. No se detectaron anomalías.
+                    </p>
+                }
+                else
+                {
+                    <h5 class="fw-bold mb-2" style="font-size: 1.1rem;">Sin resultados</h5>
+                    <p class="mb-0 small" style="font-size: 0.85rem; opacity: 0.9;">
+                        Aún no tienes resultados disponibles.
+                    </p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultados Este Mes -->
+    <div class="col-md-4">
+        <div class="card border-0 h-100" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px;">
+            <div class="card-body p-4">
+                <div class="small mb-2" style="font-size: 0.75rem; color: #64748b; letter-spacing: 0.5px;">RESULTADOS ESTE MES</div>
+                <div class="d-flex align-items-baseline gap-2 mb-3">
+                    <span class="fw-bold" style="font-size: 2.5rem; color: #0f172a;">@Model.ResultadosEsteMes</span>
+                    <span class="text-success small" style="font-size: 0.85rem;">
+                        <i class="bi bi-arrow-up-right"></i>+3
+                    </span>
+                </div>
+                <div class="progress" style="height: 6px; border-radius: 3px;">
+                    <div class="progress-bar" style="width: 75%; background: #1e3a8a; border-radius: 3px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subir Resultado Externo -->
+    <div class="col-md-4">
+        <div class="card border-0 h-100" style="background: white; border: 2px dashed #cbd5e1; border-radius: 12px;">
+            <div class="card-body p-4 text-center">
+                <div class="mb-3">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 48px; height: 48px; background: #eff6ff; color: #1e3a8a;">
+                        <i class="bi bi-file-earmark-arrow-up" style="font-size: 1.3rem;"></i>
+                    </div>
+                </div>
+                <h6 class="fw-bold mb-2" style="font-size: 0.95rem; color: #0f172a;">Subir Resultado Externo</h6>
+                <p class="mb-0 small" style="font-size: 0.82rem; color: #64748b; line-height: 1.5;">
+                    Sincronice informes de otras clínicas
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* Tabs */
+        .filter-tab {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.6rem 1.2rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            color: #475569;
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+            .filter-tab:hover {
+                background: #f8fafc;
+                border-color: #cbd5e1;
+                color: #1e3a8a;
+                text-decoration: none;
+            }
+
+            .filter-tab.active {
+                background: #1e3a8a;
+                border-color: #1e3a8a;
+                color: white;
+            }
+
+        /* Filtros activos */
+        .filter-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.4rem 0.8rem;
+            background: #dbeafe;
+            color: #1e3a8a;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+
+            .filter-badge a {
+                color: #1e3a8a;
+                opacity: 0.7;
+            }
+
+                .filter-badge a:hover {
+                    opacity: 1;
+                }
+
+        /* Tarjetas de resultados */
+        .resultado-card-professional {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            transition: all 0.2s ease;
+        }
+
+            .resultado-card-professional:hover {
+                box-shadow: 0 4px 12px rgba(30, 58, 138, 0.06);
+                border-color: #cbd5e1;
+            }
+
+        .resultado-icon-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #dbeafe;
+            color: #1e3a8a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        /* Estado vacío */
+        .empty-state-container {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-state-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 4px 16px rgba(30, 58, 138, 0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: #1e3a8a;
+            font-size: 1.8rem;
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .filter-tab {
+                padding: 0.5rem 0.9rem;
+                font-size: 0.82rem;
+            }
+
+            .resultado-card-professional .col-md-5 {
+                text-align: left !important;
+            }
+        }
+    </style>
+}

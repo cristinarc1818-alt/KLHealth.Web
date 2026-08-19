@@ -1,0 +1,94 @@
+﻿@model KLHealth.Web.Models.ViewModels.NotificacionViewModel
+@{
+    Layout = "_LayoutPaciente";
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h1 class="fw-bold mb-1" style="font-size: 1.8rem; color: #0f172a; letter-spacing: -0.5px;">Crear Recordatorio Personal</h1>
+    <p class="text-muted mb-0" style="font-size: 0.95rem;">Agrega un nuevo recordatorio a tu lista de notificaciones.</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form asp-action="Crear" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Título -->
+                    <div class="mb-3">
+                        <label asp-for="Titulo" class="form-label fw-semibold" style="font-size: 0.9rem;">
+                            Título del recordatorio
+                        </label>
+                        <input asp-for="Titulo" class="form-control" placeholder="Ej: Tomar medicamento a las 8:00 AM" style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                        <span asp-validation-for="Titulo" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Mensaje -->
+                    <div class="mb-3">
+                        <label asp-for="Mensaje" class="form-label fw-semibold" style="font-size: 0.9rem;">
+                            Descripción detallada
+                        </label>
+                        <textarea asp-for="Mensaje" class="form-control" rows="4" placeholder="Describe los detalles de tu recordatorio..." style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem; resize: none;"></textarea>
+                        <span asp-validation-for="Mensaje" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Icono y Color -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="Icono" class="form-label fw-semibold" style="font-size: 0.9rem;">Icono</label>
+                            <select asp-for="Icono" class="form-select" style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                                <option value="bi-bell">Campana</option>
+                                <option value="bi-calendar-event">Calendario</option>
+                                <option value="bi-capsule">Medicamento</option>
+                                <option value="bi-heart-pulse">Salud</option>
+                                <option value="bi-clipboard-check">Tarea</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Color" class="form-label fw-semibold" style="font-size: 0.9rem;">Tipo de notificación</label>
+                            <select asp-for="Color" class="form-select" style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                                <option value="text-primary">Informativa</option>
+                                <option value="text-success">Éxito</option>
+                                <option value="text-warning">Advertencia </option>
+                                <option value="text-danger">Importante </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Resumen de validaciones -->
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <!-- Botones -->
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary px-4 py-2" style="background: #1e3a8a; border-color: #1e3a8a; border-radius: 10px; font-size: 0.9rem; font-weight: 500;">
+                            <i class="bi bi-check-circle me-2"></i>Guardar en notificacion
+                        </button>
+                        <a href="@Url.Action("Index", "Notificaciones")" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 10px; font-size: 0.9rem;">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel lateral informativo -->
+    <div class="col-lg-4">
+        <div class="card border-0" style="background: #eff6ff; border-radius: 12px; border-left: 4px solid #1e3a8a;">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-2" style="font-size: 0.9rem; color: #1e3a8a;">
+                    <i class="bi bi-info-circle me-1"></i>Información Técnica
+                </h6>
+                <p class="mb-0 small" style="font-size: 0.82rem; color: #475569; line-height: 1.6;">
+                    Este formulario demuestra la creación de registros y notificaciones para el paciente.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

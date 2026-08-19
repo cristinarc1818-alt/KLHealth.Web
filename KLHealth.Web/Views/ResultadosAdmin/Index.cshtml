@@ -1,0 +1,364 @@
+﻿@model KLHealth.Web.Models.ViewModels.AdminResultadosViewModel
+@{
+    Layout = "_LayoutAdmin";
+    var cultura = new System.Globalization.CultureInfo("es-ES");
+
+    // Función helper para normalizar nombres de médicos (evita "Dr. Dr. Juan")
+    string NormalizarNombreMedico(dynamic medico)
+    {
+        if (medico == null) return "Médico no asignado";
+
+        var nombreCompleto = (medico.Usuario?.NombreCompleto as string)?.Trim() ?? "";
+        var titulo = (medico.Titulo as string)?.Trim() ?? "";
+
+        nombreCompleto = nombreCompleto
+            .Replace("Dr. ", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("Dra. ", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("Dr ", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("Dra ", "", StringComparison.OrdinalIgnoreCase)
+            .Trim();
+
+        titulo = titulo
+            .Replace("Dr. Dr.", "Dr.", StringComparison.OrdinalIgnoreCase)
+            .Replace("Dra. Dra.", "Dra.", StringComparison.OrdinalIgnoreCase)
+            .Trim();
+
+        return string.IsNullOrWhiteSpace(titulo)
+            ? nombreCompleto
+            : $"{titulo} {nombreCompleto}".Trim();
+    }
+
+    var nombreMedicoMostrar = Model.ResultadoSeleccionado != null
+        ? NormalizarNombreMedico(Model.ResultadoSeleccionado.Medico)
+        : "";
+}
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="fw-bold mb-1" style="font-size: 1.75rem; color: var(--blue-700); letter-spacing: -0.5px;">Resultados Médicos</h1>
+        <p class="text-muted mb-0" style="font-size: 0.9rem;">Revisar y gestionar documentación clínica.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary" style="border-radius: 8px;" data-bs-toggle="modal" data-bs-target="#filtroModal">
+            <i class="bi bi-funnel me-1"></i>Filtrar
+        </button>
+
+        <a href="@Url.Action("Crear", "ResultadosAdmin")"
+           class="btn btn-primary px-4 py-2"
+           style="background: var(--blue-900); border-color: var(--blue-900); border-radius: 10px; font-weight: 500; text-decoration: none;">
+            <i class="bi bi-plus-lg me-1"></i>Nuevo Resultado
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success border-0 shadow-sm mb-4 d-flex align-items-center gap-2"
+         style="border-radius: 10px; font-size: 0.9rem; background: #f0fdf4; color: #166534;">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger border-0 shadow-sm mb-4 d-flex align-items-center gap-2"
+         style="border-radius: 10px; font-size: 0.9rem; background: #fef2f2; color: #991b1b;">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>@TempData["Error"]</span>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- COLUMNA IZQUIERDA: LISTA -->
+    <div class="col-lg-5">
+        <div class="mb-3">
+            <div class="d-flex gap-2 flex-wrap">
+                @foreach (var tab in Model.TabsDisponibles)
+                {
+                    <a href="@Url.Action("Index", "ResultadosAdmin", new { tab = tab })"
+                       class="filter-tab @(Model.TabActual == tab ? "active" : "")">
+                        @tab
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="border-radius: 14px;">
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    @if (Model.Resultados.Any())
+                    {
+                        @foreach (var resultado in Model.Resultados)
+                        {
+                            var isSelected = Model.ResultadoSeleccionado?.Id == resultado.Id;
+                            var estadoClass = resultado.Pendiente ? "bg-warning bg-opacity-10 text-warning" : "bg-success bg-opacity-10 text-success";
+                            var estadoTexto = resultado.Pendiente ? "PENDIENTE" : "FINALIZADO";
+
+                            var iconoTipo = resultado.Tipo.ToLower() switch
+                            {
+                                var t when t.Contains("laboratorio") => "bi-droplet",
+                                var t when t.Contains("radiología") || t.Contains("rayos") => "bi-film",
+                                var t when t.Contains("ecg") || t.Contains("electro") => "bi-activity",
+                                _ => "bi-file-earmark-medical"
+                            };
+
+                            <a href="@Url.Action("Index", "ResultadosAdmin", new { tab = Model.TabActual, id = resultado.Id })"
+                               class="list-group-item list-group-item-action border-0 p-3 @(isSelected ? "bg-primary bg-opacity-10" : "")"
+                               style="border-left: 3px solid @(isSelected ? "var(--blue-900)" : "transparent");">
+                                <div class="d-flex gap-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                         style="width: 40px; height: 40px; background: #dbeafe; color: var(--blue-700);">
+                                        <i class="bi @iconoTipo" style="font-size: 1.1rem;"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="fw-bold mb-1" style="font-size: 0.95rem; color: #0f172a;">
+                                            @(resultado.NombreExamen ?? resultado.Tipo)
+                                        </h6>
+                                        <div class="small text-muted mb-2">
+                                            <i class="bi bi-person me-1"></i>@(resultado.Paciente?.Usuario?.NombreCompleto ?? "Paciente")
+                                            <span class="mx-2">•</span>
+                                            <i class="bi bi-calendar me-1"></i>@resultado.Fecha.ToString("dd MMM yyyy", cultura)
+                                        </div>
+                                        <span class="badge rounded-pill px-2 py-1 @estadoClass" style="font-size: 0.65rem; font-weight: 700;">
+                                            @estadoTexto
+                                        </span>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-chevron-right text-muted"></i>
+                                    </div>
+                                </div>
+                            </a>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-file-earmark-x" style="font-size: 2rem; color: #cbd5e1;"></i>
+                            <p class="text-muted small mt-2 mb-0">No hay resultados disponibles</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: VISTA PREVIA -->
+    <div class="col-lg-7">
+        @if (Model.ResultadoSeleccionado != null)
+        {
+            <div class="card border-0 shadow-sm" style="border-radius: 14px; overflow: hidden;">
+                <div class="card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center" style="background: #f8fafc;">
+                    <div>
+                        <h5 class="fw-bold mb-0" style="color: #0f172a; font-size: 1.1rem;">Vista Previa</h5>
+                        <small class="text-muted">@Model.ResultadoSeleccionado.NombreExamen</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary btn-sm" style="border-radius: 8px;" onclick="window.print()">
+                            <i class="bi bi-printer me-1"></i>Imprimir
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card-body p-4" style="background: white; min-height: 600px;">
+                    <div class="d-flex justify-content-between align-items-start mb-4 pb-4" style="border-bottom: 2px solid #e2e8f0;">
+                        <div>
+                            <h3 class="fw-bold mb-1" style="color: var(--blue-900); font-size: 1.5rem;">K & L Health</h3>
+                            <p class="text-muted mb-0 small">Grupo de Salud Integral</p>
+                        </div>
+                        <div class="text-end">
+                            <div class="small text-muted">ID INFORME</div>
+                            <div class="fw-bold" style="color: #0f172a;">#@Model.ResultadoSeleccionado.Id.ToString("D5")</div>
+                            <div class="small text-muted mt-1">@Model.ResultadoSeleccionado.Fecha.ToString("dd MMM yyyy", cultura).ToUpper()</div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4 pb-4" style="border-bottom: 1px solid #e2e8f0;">
+                        <div class="col-md-6">
+                            <div class="small text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem;">Paciente</div>
+                            <div class="fw-bold" style="font-size: 1.1rem; color: #0f172a;">
+                                @Model.ResultadoSeleccionado.Paciente?.Usuario?.NombreCompleto
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <div class="small text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem;">Médico</div>
+                            <div class="fw-bold" style="font-size: 1.1rem; color: #0f172a;">
+                                @nombreMedicoMostrar
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 class="fw-bold mb-4" style="color: var(--blue-900); font-size: 1.2rem; border-left: 4px solid var(--blue-900); padding-left: 1rem;">
+                        @Model.ResultadoSeleccionado.NombreExamen
+                    </h4>
+
+                    <div class="mb-4">
+                        <h5 class="fw-bold mb-3" style="font-size: 0.95rem; color: #0f172a;">HALLAZGOS CLÍNICOS</h5>
+                        <p class="text-muted" style="font-size: 0.9rem; line-height: 1.7;">
+                            @(Model.ResultadoSeleccionado.Descripcion ?? "No hay detalles disponibles.")
+                        </p>
+                    </div>
+
+                    <div class="mb-4 p-3" style="background: #eff6ff; border-radius: 8px; border-left: 4px solid var(--blue-900);">
+                        <h6 class="fw-bold mb-2" style="color: var(--blue-900); font-size: 0.85rem;">IMPRESIÓN</h6>
+                        <p class="mb-0 fw-semibold" style="color: #0f172a;">
+                            Estudio de @Model.ResultadoSeleccionado.Tipo sin anomalías significativas.
+                        </p>
+                    </div>
+
+                    <div class="mt-5 pt-4" style="border-top: 1px solid #e2e8f0;">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="small text-muted mb-1">Firmado por:</div>
+                                <div class="fw-bold" style="color: #0f172a;">@nombreMedicoMostrar</div>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <i class="bi bi-patch-check-fill" style="font-size: 3rem; color: var(--blue-900);"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer border-0 py-3 px-4 d-flex justify-content-between align-items-center" style="background: #f8fafc;">
+                    @if (Model.ResultadoSeleccionado.Pendiente)
+                    {
+                        <form method="post" action="@Url.Action("MarcarFinalizado", "ResultadosAdmin", new { id = Model.ResultadoSeleccionado.Id })">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success px-4 py-2" style="border-radius: 8px; font-weight: 600;">
+                                <i class="bi bi-check-circle me-2"></i>Marcar Finalizado
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success bg-opacity-10 text-success px-3 py-2" style="font-size: 0.85rem;">
+                            <i class="bi bi-check-circle me-1"></i>Finalizado
+                        </span>
+                    }
+
+                    <form method="post" action="@Url.Action("Eliminar", "ResultadosAdmin", new { id = Model.ResultadoSeleccionado.Id })"
+                          onsubmit="return confirm('¿Eliminar este resultado?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-danger" style="border-radius: 8px;">
+                            <i class="bi bi-trash me-1"></i>Eliminar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card border-0 shadow-sm" style="border-radius: 14px; background: #f8fafc;">
+                <div class="card-body p-5 text-center">
+                    <i class="bi bi-file-earmark-text" style="font-size: 4rem; color: #cbd5e1;"></i>
+                    <h5 class="fw-bold mt-3 mb-2" style="color: #0f172a;">Seleccione un resultado</h5>
+                    <p class="text-muted mb-0">Haga clic en cualquier resultado de la lista</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- MODAL DE FILTROS -->
+@{
+    var busquedaActual = Context.Request.Query["busqueda"].ToString();
+    var fechaDesdeActual = Context.Request.Query["fechaDesde"].ToString();
+    var fechaHastaActual = Context.Request.Query["fechaHasta"].ToString();
+}
+
+<div class="modal fade" id="filtroModal" tabindex="-1" aria-labelledby="filtroModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 12px;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="filtroModalLabel">Filtrar Resultados</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="Index" method="get">
+                    <input type="hidden" name="tab" value="@Model.TabActual" />
+                    <input type="hidden" name="id" value="@Model.ResultadoSeleccionado?.Id" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Buscar por texto</label>
+                        <input type="text" name="busqueda" class="form-control"
+                               value="@busquedaActual"
+                               placeholder="Paciente, examen, médico..." style="border-radius: 8px;">
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Fecha desde</label>
+                            <input type="date" name="fechaDesde" class="form-control"
+                                   value="@fechaDesdeActual" style="border-radius: 8px;">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Fecha hasta</label>
+                            <input type="date" name="fechaHasta" class="form-control"
+                                   value="@fechaHastaActual" style="border-radius: 8px;">
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill" style="background: var(--blue-900); border-radius: 8px;">
+                            <i class="bi bi-search me-1"></i>Aplicar
+                        </button>
+                        <a href="@Url.Action("Index", "ResultadosAdmin")" class="btn btn-outline-secondary flex-fill" style="border-radius: 8px;">
+                            Limpiar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .filter-tab {
+            padding: 0.6rem 1.2rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            color: #475569;
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+            .filter-tab:hover {
+                background: #f8fafc;
+                color: var(--blue-700);
+                text-decoration: none;
+            }
+
+            .filter-tab.active {
+                background: var(--blue-900);
+                border-color: var(--blue-900);
+                color: white;
+            }
+
+        .list-group {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        @@media print {
+            body * {
+                visibility: hidden;
+            }
+
+            .card-body, .card-body * {
+                visibility: visible;
+            }
+
+            .card-body {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+        }
+    </style>
+}

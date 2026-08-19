@@ -1,0 +1,449 @@
+﻿@model KLHealth.Web.Models.ViewModels.CitaViewModel
+@{
+    Layout = "_LayoutPaciente";
+    var hoy = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+
+    // Helper para normalizar nombres de médicos
+    string NormalizarNombre(string nombreCompleto, string titulo)
+    {
+        var nombre = (nombreCompleto ?? "").Trim()
+            .Replace("Dr. ", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("Dra. ", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("Dr ", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("Dra ", "", StringComparison.OrdinalIgnoreCase)
+            .Trim();
+
+        var tit = (titulo ?? "").Trim()
+            .Replace("Dr. Dr.", "Dr.", StringComparison.OrdinalIgnoreCase)
+            .Replace("Dra. Dra.", "Dra.", StringComparison.OrdinalIgnoreCase)
+            .Trim();
+
+        return string.IsNullOrWhiteSpace(tit) ? nombre : $"{tit} {nombre}".Trim();
+    }
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h1 class="fw-bold mb-1" style="font-size: 1.75rem; color: #0f172a; letter-spacing: -0.5px;">Agendar Cita</h1>
+    <p class="text-muted mb-0" style="font-size: 0.95rem;">Programa una nueva cita médica de manera rápida y sencilla.</p>
+</div>
+
+<form asp-action="Agendar" method="post" id="formAgendarCita">
+    @Html.AntiForgeryToken()
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Paso 1: Seleccionar Especialidad -->
+            <div class="card border-0 mb-4 step-card">
+                <div class="card-body p-4">
+                    <div class="step-header mb-3">
+                        <div class="step-number">1</div>
+                        <h5 class="fw-bold mb-0" style="font-size: 1rem; color: #0f172a;">SELECCIONAR ESPECIALIDAD Y MÉDICO</h5>
+                    </div>
+
+                    <div class="mb-0">
+                        <label asp-for="MedicoId" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                            <i class="bi bi-person-badge me-1"></i>Médico
+                        </label>
+                        <select asp-for="MedicoId" id="MedicoId"
+                                class="form-select form-select-lg"
+                                style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.9rem 1.2rem; font-size: 0.95rem; background: #f8fafc;">
+                            <option value="">-- Seleccione una especialidad... --</option>
+                            @foreach (var grupo in Model.MedicosDisponibles.GroupBy(m => m.Especialidad).OrderBy(g => g.Key))
+                            {
+                                <optgroup label="@grupo.Key">
+                                    @foreach (var m in grupo)
+                                    {
+                                        var nombreNormalizado = NormalizarNombre(m.NombreCompleto, m.Titulo);
+                                        var selected = m.Id == Model.MedicoId ? "selected" : "";
+
+                                        <option value="@m.Id"
+                                                selected="@selected"
+                                                data-especialidad="@grupo.Key"
+                                                data-nombre="@nombreNormalizado">
+                                            @nombreNormalizado
+                                        </option>
+                                    }
+                                </optgroup>
+                            }
+                        </select>
+                        <span asp-validation-for="MedicoId" class="text-danger small mt-2"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paso 2: Seleccionar Tipo de Consulta -->
+            <div class="card border-0 mb-4 step-card">
+                <div class="card-body p-4">
+                    <div class="step-header mb-3">
+                        <div class="step-number">2</div>
+                        <h5 class="fw-bold mb-0" style="font-size: 1rem; color: #0f172a;">MODALIDAD DE CONSULTA</h5>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="modality-card active" onclick="selectModality('Presencial', this)">
+                                <div class="text-center">
+                                    <div class="modality-icon mb-2">
+                                        <i class="bi bi-hospital-fill"></i>
+                                    </div>
+                                    <h6 class="fw-bold mb-1" style="font-size: 0.95rem;">Presencial</h6>
+                                    <small class="text-muted" style="font-size: 0.78rem;">EN CLÍNICA CENTRAL</small>
+                                </div>
+                                <input type="radio" name="Tipo" value="Presencial" checked class="d-none" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="modality-card" onclick="selectModality('Virtual', this)">
+                                <div class="text-center">
+                                    <div class="modality-icon mb-2">
+                                        <i class="bi bi-camera-video-fill"></i>
+                                    </div>
+                                    <h6 class="fw-bold mb-1" style="font-size: 0.95rem;">Virtual</h6>
+                                    <small class="text-muted" style="font-size: 0.78rem;">VIDEOCONSULTA HD</small>
+                                </div>
+                                <input type="radio" name="Tipo" value="Virtual" class="d-none" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paso 3: Seleccionar Fecha y Hora -->
+            <div class="card border-0 mb-4 step-card">
+                <div class="card-body p-4">
+                    <div class="step-header mb-3">
+                        <div class="step-number">3</div>
+                        <h5 class="fw-bold mb-0" style="font-size: 1rem; color: #0f172a;">SELECCIONAR FECHA Y HORA</h5>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="FechaHoraInicio" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                <i class="bi bi-calendar-event me-1"></i>Fecha y Hora
+                            </label>
+                            <input asp-for="FechaHoraInicio"
+                                   type="datetime-local"
+                                   id="FechaHoraInicio"
+                                   class="form-control"
+                                   min="@hoy"
+                                   style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem; font-size: 0.9rem;" />
+                            <span asp-validation-for="FechaHoraInicio" class="text-danger small mt-2 d-block"></span>
+                            <small class="text-muted" style="font-size: 0.75rem;">
+                                <i class="bi bi-info-circle me-1"></i>No se permiten fechas en el pasado.
+                            </small>
+                        </div>
+                        <div class="col-md-6" id="campoSala">
+                            <label asp-for="Sala" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                <i class="bi bi-geo-alt me-1"></i>Ubicación/Sala
+                            </label>
+                            <input asp-for="Sala" id="Sala"
+                                   class="form-control"
+                                   placeholder="Ej: Consultorio 402"
+                                   style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem; font-size: 0.9rem;" />
+                            <small class="text-muted" style="font-size: 0.75rem;" id="textoSala">
+                                El personal asignará la sala si no se especifica.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paso 4: Motivo de Consulta -->
+            <div class="card border-0 mb-4 step-card">
+                <div class="card-body p-4">
+                    <div class="step-header mb-3">
+                        <div class="step-number">4</div>
+                        <h5 class="fw-bold mb-0" style="font-size: 1rem; color: #0f172a;">MOTIVO DE CONSULTA</h5>
+                    </div>
+
+                    <div class="mb-0">
+                        <label asp-for="Motivo" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                            <i class="bi bi-file-text me-1"></i>Describa brevemente el motivo
+                        </label>
+                        <textarea asp-for="Motivo"
+                                  id="Motivo"
+                                  class="form-control"
+                                  rows="4"
+                                  maxlength="500"
+                                  placeholder="Escriba brevemente el motivo de su cita o cualquier observación importante para el médico..."
+                                  style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.9rem 1rem; font-size: 0.9rem; resize: vertical;"></textarea>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span asp-validation-for="Motivo" class="text-danger small"></span>
+                            <small class="text-muted" id="contadorMotivo" style="font-size: 0.78rem;">0 / 500</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="d-flex gap-3 mb-5">
+                <button type="submit" class="btn btn-primary px-5 py-3"
+                        style="background: #1e3a8a; border-color: #1e3a8a; border-radius: 10px; font-size: 0.95rem; font-weight: 600;">
+                    <i class="bi bi-check-circle me-2"></i>Confirmar cita
+                </button>
+                <a href="@Url.Action("Index", "Citas")" class="btn btn-outline-secondary px-4 py-3"
+                   style="border-radius: 10px; font-size: 0.95rem;">
+                    <i class="bi bi-x-circle me-2"></i>Cancelar
+                </a>
+            </div>
+        </div>
+
+        <!-- Panel lateral derecho - Resumen -->
+        <div class="col-lg-4">
+            <div class="card border-0 mb-3 position-sticky" style="top: 20px; background: #1e3a8a; color: white; border-radius: 12px;">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4" style="font-size: 1rem; letter-spacing: 0.5px;">
+                        <i class="bi bi-clipboard-pulse me-2"></i>RESUMEN DE LA CITA
+                    </h5>
+
+                    <div class="mb-3">
+                        <div class="small mb-1" style="font-size: 0.75rem; opacity: 0.9;">ESPECIALIDAD</div>
+                        <div class="fw-semibold" style="font-size: 0.95rem;" id="resumenEspecialidad">Por seleccionar</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="small mb-1" style="font-size: 0.75rem; opacity: 0.9;">MÉDICO</div>
+                        <div class="fw-semibold" style="font-size: 0.95rem;" id="resumenMedico">Por seleccionar</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="small mb-1" style="font-size: 0.75rem; opacity: 0.9;">FECHA Y HORA</div>
+                        <div class="fw-semibold" style="font-size: 0.95rem;" id="resumenFecha">Por seleccionar</div>
+                    </div>
+
+                    <div>
+                        <div class="small mb-1" style="font-size: 0.75rem; opacity: 0.9;">MODALIDAD</div>
+                        <div class="fw-semibold" style="font-size: 0.95rem;" id="resumenModalidad">Presencial</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Cancelación -->
+            <div class="card border-0" style="background: #eff6ff; border-radius: 12px; border-left: 4px solid #1e3a8a;">
+                <div class="card-body p-4">
+                    <div class="d-flex gap-3">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-info-circle-fill" style="color: #1e3a8a; font-size: 1.5rem;"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-2" style="font-size: 0.9rem; color: #1e3a8a;">Información de Cancelación</h6>
+                            <p class="mb-0 small" style="font-size: 0.82rem; color: #475569; line-height: 1.6;">
+                                Puedes cancelar o reprogramar tu cita sin costo hasta 24 horas antes del horario programado. En caso de emergencias, por favor contáctanos vía chat.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // ============================================================
+        // MODALIDAD DE CONSULTA
+        // ============================================================
+        function selectModality(tipo, element) {
+            document.querySelectorAll('.modality-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            element.classList.add('active');
+            document.querySelector(`input[name="Tipo"][value="${tipo}"]`).checked = true;
+
+            const campoSala = document.getElementById('campoSala');
+            const textoSala = document.getElementById('textoSala');
+
+            if (tipo === 'Virtual') {
+                campoSala.style.opacity = '0.5';
+                campoSala.querySelector('input').disabled = true;
+                campoSala.querySelector('input').value = 'Consulta Virtual';
+                textoSala.innerHTML = '<i class="bi bi-camera-video me-1"></i>Se enviará un enlace antes de la consulta.';
+            } else {
+                campoSala.style.opacity = '1';
+                campoSala.querySelector('input').disabled = false;
+                if (campoSala.querySelector('input').value === 'Consulta Virtual') {
+                    campoSala.querySelector('input').value = '';
+                }
+                textoSala.textContent = 'El personal asignará la sala si no se especifica.';
+            }
+
+            document.getElementById('resumenModalidad').textContent = tipo;
+        }
+
+        // ============================================================
+        // ACTUALIZAR RESUMEN DINÁMICAMENTE
+        // ============================================================
+        const selectMedico = document.getElementById('MedicoId');
+        const inputFecha = document.getElementById('FechaHoraInicio');
+        const textareaMotivo = document.getElementById('Motivo');
+        const contadorMotivo = document.getElementById('contadorMotivo');
+
+        selectMedico.addEventListener('change', function() {
+            const selected = this.options[this.selectedIndex];
+            const especialidad = selected.getAttribute('data-especialidad') || 'Por seleccionar';
+            const nombre = selected.getAttribute('data-nombre') || 'Por seleccionar';
+
+            document.getElementById('resumenEspecialidad').textContent = especialidad;
+            document.getElementById('resumenMedico').textContent = nombre;
+        });
+
+        inputFecha.addEventListener('change', function() {
+            if (this.value) {
+                const fecha = new Date(this.value);
+                const opciones = {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                };
+                document.getElementById('resumenFecha').textContent =
+                    fecha.toLocaleDateString('es-ES', opciones);
+            } else {
+                document.getElementById('resumenFecha').textContent = 'Por seleccionar';
+            }
+        });
+
+        // ============================================================
+        // CONTADOR DE CARACTERES
+        // ============================================================
+        textareaMotivo.addEventListener('input', function() {
+            const count = this.value.length;
+            contadorMotivo.textContent = `${count} / 500`;
+
+            if (count > 450) {
+                contadorMotivo.style.color = '#dc2626';
+                contadorMotivo.classList.add('fw-bold');
+            } else {
+                contadorMotivo.style.color = '';
+                contadorMotivo.classList.remove('fw-bold');
+            }
+        });
+
+        // ============================================================
+        // VALIDACIÓN DE FECHA PASADA EN TIEMPO REAL
+        // ============================================================
+        document.getElementById('formAgendarCita').addEventListener('submit', function(e) {
+            const fechaInput = document.getElementById('FechaHoraInicio');
+            if (fechaInput.value) {
+                const fechaSeleccionada = new Date(fechaInput.value);
+                const ahora = new Date();
+
+                if (fechaSeleccionada < ahora) {
+                    e.preventDefault();
+                    alert('No puede seleccionar una fecha en el pasado.');
+                    fechaInput.focus();
+                    return false;
+                }
+            }
+        });
+
+        // Inicializar resumen si hay valores preseleccionados (post de validación)
+        window.addEventListener('DOMContentLoaded', function() {
+            if (selectMedico.value) {
+                selectMedico.dispatchEvent(new Event('change'));
+            }
+            if (inputFecha.value) {
+                inputFecha.dispatchEvent(new Event('change'));
+            }
+            if (textareaMotivo.value) {
+                textareaMotivo.dispatchEvent(new Event('input'));
+            }
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        /* Step cards */
+        .step-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+            .step-card:hover {
+                box-shadow: 0 4px 12px rgba(30, 58, 138, 0.06);
+            }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #dbeafe;
+            color: #1e3a8a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        /* Modality cards */
+        .modality-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+            .modality-card:hover {
+                border-color: #cbd5e1;
+                box-shadow: 0 4px 12px rgba(30, 58, 138, 0.08);
+            }
+
+            .modality-card.active {
+                border-color: #1e3a8a;
+                background: #eff6ff;
+                box-shadow: 0 4px 12px rgba(30, 58, 138, 0.12);
+            }
+
+        .modality-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #dbeafe;
+            color: #1e3a8a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            font-size: 1.3rem;
+            transition: all 0.2s ease;
+        }
+
+        .modality-card.active .modality-icon {
+            background: #1e3a8a;
+            color: white;
+        }
+
+        /* Smooth transitions for dynamic content */
+        #campoSala,
+        #resumenEspecialidad,
+        #resumenMedico,
+        #resumenFecha,
+        #resumenModalidad {
+            transition: all 0.25s ease;
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .step-card .card-body {
+                padding: 1.25rem;
+            }
+        }
+    </style>
+}

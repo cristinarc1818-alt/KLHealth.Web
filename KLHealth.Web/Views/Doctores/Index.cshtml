@@ -1,0 +1,175 @@
+﻿@model KLHealth.Web.Models.ViewModels.DoctoresViewModel
+@{
+    Layout = "_LayoutPaciente";
+
+    // Helper para normalizar nombres de médicos
+    string NormalizarNombre(string nombreCompleto, string titulo)
+    {
+        var nombre = (nombreCompleto ?? "").Trim()
+            .Replace("Dr. ", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("Dra. ", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("Dr ", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("Dra ", "", StringComparison.OrdinalIgnoreCase)
+            .Trim();
+
+        var tit = (titulo ?? "").Trim()
+            .Replace("Dr. Dr.", "Dr.", StringComparison.OrdinalIgnoreCase)
+            .Replace("Dra. Dra.", "Dra.", StringComparison.OrdinalIgnoreCase)
+            .Trim();
+
+        return string.IsNullOrWhiteSpace(tit) ? nombre : $"{tit} {nombre}".Trim();
+    }
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h1 class="fw-bold mb-1" style="font-size: 1.75rem; color: #0f172a; letter-spacing: -0.5px;">Nuestros Médicos</h1>
+    <p class="text-muted mb-0" style="font-size: 0.95rem;">Encuentra al especialista ideal para ti.</p>
+</div>
+
+<!-- Filtros -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 14px;">
+    <div class="card-body p-4">
+        <form asp-action="Index" method="get" class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold" style="font-size: 0.85rem;">
+                    <i class="bi bi-search me-1"></i>Buscar
+                </label>
+                <input type="text" name="busqueda" value="@Model.Busqueda"
+                       class="form-control" placeholder="Nombre del médico, especialidad..."
+                       style="border-radius: 10px; border: 1px solid #e2e8f0;">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold" style="font-size: 0.85rem;">
+                    <i class="bi bi-funnel me-1"></i>Especialidad
+                </label>
+                <select name="especialidad" class="form-select" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <option value="">Todas las especialidades</option>
+                    @foreach (var esp in Model.EspecialidadesDisponibles)
+                    {
+                        var selected = esp == Model.EspecialidadFiltro ? "selected" : "";
+                        <option value="@esp" selected="@selected">@esp</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-fill"
+                        style="background: #1e3a8a; border-color: #1e3a8a; border-radius: 10px;">
+                    <i class="bi bi-search"></i>
+                </button>
+                <a href="@Url.Action("Index", "Doctores")" class="btn btn-outline-secondary"
+                   style="border-radius: 10px;" title="Limpiar filtros">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Resultados -->
+<div class="mb-3">
+    <p class="text-muted mb-0" style="font-size: 0.9rem;">
+        <i class="bi bi-people me-1"></i>
+        <strong>@Model.TotalResultados</strong> médicos encontrados
+    </p>
+</div>
+
+<!-- Grid de Doctores -->
+@if (Model.Medicos != null && Model.Medicos.Any())
+{
+    <div class="row g-4">
+        @foreach (var doctor in Model.Medicos)
+        {
+            var nombreNormalizado = NormalizarNombre(doctor.NombreCompleto, doctor.Titulo);
+
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100 doctor-card" style="border-radius: 14px;">
+                    <div class="card-body p-4">
+                        <!-- Foto y Datos Básicos -->
+                        <div class="text-center mb-3">
+                            <img src="@doctor.FotoUrl" alt="@nombreNormalizado"
+                                 class="rounded-circle mb-3"
+                                 style="width: 90px; height: 90px; object-fit: cover; border: 3px solid #dbeafe;">
+                            <h5 class="fw-bold mb-1" style="font-size: 1.05rem; color: #0f172a;">
+                                @nombreNormalizado
+                            </h5>
+                            <p class="text-primary fw-semibold mb-1" style="font-size: 0.85rem; color: #1e3a8a !important;">
+                                @doctor.Especialidad
+                            </p>
+                            <div class="d-flex justify-content-center align-items-center gap-1 mb-2">
+                                <i class="bi bi-star-fill" style="color: #fbbf24; font-size: 0.85rem;"></i>
+                                <span class="fw-bold" style="font-size: 0.85rem;">@doctor.Calificacion.ToString("0.0")</span>
+                                <small class="text-muted">(@doctor.TotalResenas reseñas)</small>
+                            </div>
+                        </div>
+
+                        <!-- Info Adicional -->
+                        <div class="d-flex justify-content-around py-3 mb-3"
+                             style="border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9;">
+                            <div class="text-center">
+                                <div class="fw-bold" style="color: #0f172a;">@doctor.Experiencia</div>
+                                <small class="text-muted" style="font-size: 0.7rem;">Experiencia</small>
+                            </div>
+                            <div class="text-center">
+                                <div class="fw-bold text-success">
+                                    @(doctor.EstaDisponible ? "Disponible" : "No disponible")
+                                </div>
+                                <small class="text-muted" style="font-size: 0.7rem;">Estado</small>
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-grid gap-2">
+                            <a href="@Url.Action("Detalles", "Doctores", new { id = doctor.Id })"
+                               class="btn btn-outline-primary py-2"
+                               style="border-radius: 10px; border-color: #1e3a8a; color: #1e3a8a; font-weight: 500; font-size: 0.88rem;">
+                                <i class="bi bi-person-lines-fill me-1"></i>Ver Perfil
+                            </a>
+                            @if (doctor.EstaDisponible)
+                            {
+                                <a href="@Url.Action("Agendar", "Citas", new { medicoId = doctor.Id })"
+                                   class="btn btn-primary py-2"
+                                   style="background: #1e3a8a; border-color: #1e3a8a; border-radius: 10px; font-weight: 500; font-size: 0.88rem;">
+                                    <i class="bi bi-calendar-plus me-1"></i>Agendar Cita
+                                </a>
+                            }
+                            else
+                            {
+                                <button class="btn btn-secondary py-2" disabled
+                                        style="border-radius: 10px; font-size: 0.88rem;">
+                                    <i class="bi bi-calendar-x me-1"></i>No disponible
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="text-center py-5" style="background: #f8fafc; border-radius: 14px; border: 2px dashed #cbd5e1;">
+        <i class="bi bi-person-x" style="font-size: 3rem; color: #cbd5e1;"></i>
+        <h5 class="fw-bold mt-3 mb-2" style="color: #0f172a;">No se encontraron médicos</h5>
+        <p class="text-muted mb-3">Intenta con otros criterios de búsqueda</p>
+        <a href="@Url.Action("Index", "Doctores")" class="btn btn-outline-primary" style="border-radius: 10px;">
+            <i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar filtros
+        </a>
+    </div>
+}
+
+@section Styles {
+    <style>
+        .doctor-card {
+            transition: all 0.25s ease;
+            border: 1px solid #e2e8f0;
+        }
+
+            .doctor-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 10px 30px rgba(30, 58, 138, 0.12);
+                border-color: #cbd5e1;
+            }
+    </style>
+}

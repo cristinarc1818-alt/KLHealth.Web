@@ -1,0 +1,242 @@
+﻿@model KLHealth.Web.Models.ViewModels.PerfilViewModel
+@{
+    Layout = "_LayoutPaciente";
+    var cultura = new System.Globalization.CultureInfo("es-ES");
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h1 class="fw-bold mb-1" style="font-size: 2rem; color: #0f172a; letter-spacing: -0.5px;">Mi Perfil</h1>
+    <p class="text-muted mb-0" style="font-size: 0.95rem;">Administre su información personal, detalles de contacto y seguridad de la cuenta.</p>
+</div>
+
+<div class="row g-4">
+    <!-- Columna Izquierda: Foto y Acciones -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm" style="border-radius: 14px; overflow: hidden;">
+            <div class="card-body p-4 text-center" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);">
+                <!-- Foto de Perfil -->
+                <div class="position-relative d-inline-block mb-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                         style="width: 140px; height: 140px; background: #1e3a8a; color: white; font-size: 3.5rem; font-weight: 700; border: 5px solid white; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);">
+                        @{
+                            var iniciales = Model.NombreCompleto.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                .Take(2)
+                                .Aggregate("", (a, c) => a + (c.Length > 0 ? c[0].ToString() : ""))
+                                .ToUpper();
+                        }
+                        @iniciales
+                    </div>
+                    <button class="btn btn-sm position-absolute bottom-0 end-0 rounded-circle"
+                            style="width: 36px; height: 36px; background: #1e3a8a; color: white; border: 3px solid white;">
+                        <i class="bi bi-pencil-fill" style="font-size: 0.8rem;"></i>
+                    </button>
+                </div>
+
+                <h4 class="fw-bold mb-1" style="color: #0f172a;">@Model.NombreCompleto</h4>
+                <span class="badge rounded-pill px-3 py-2 mb-3" style="background: #dbeafe; color: #1e3a8a; font-size: 0.8rem;">
+                    <i class="bi bi-person-badge me-1"></i>ID del Paciente: @(Model.NumeroIdentificacion ?? "N/A")
+                </span>
+
+                <!-- Botones de Acción -->
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("Editar", "Perfil")" class="btn px-4 py-2" style="background: #1e3a8a; color: white; border-radius: 10px; font-weight: 600; text-decoration: none;">
+                        <i class="bi bi-pencil-square me-2"></i>Editar Perfil
+                    </a>
+                    <a href="@Url.Action("CambiarPassword", "Perfil")" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 10px; text-decoration: none;">
+                        <i class="bi bi-lock me-2"></i>Cambiar Contraseña
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna Derecha: Información Personal -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm" style="border-radius: 14px;">
+            <div class="card-body p-4">
+                <h4 class="fw-bold mb-4" style="color: #0f172a;">Información Personal</h4>
+
+                <div class="row g-3">
+                    <!-- Correo Electrónico -->
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                            Correo Electrónico
+                        </label>
+                        <div class="form-control-plaintext fw-semibold px-3 py-2" style="background: #f8fafc; border-radius: 8px; color: #0f172a;">
+                            @Model.Email
+                        </div>
+                    </div>
+
+                    <!-- Número de Teléfono -->
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                            Número de Teléfono
+                        </label>
+                        <div class="form-control-plaintext fw-semibold px-3 py-2" style="background: #f8fafc; border-radius: 8px; color: #0f172a;">
+                            @(Model.Telefono ?? "No registrado")
+                        </div>
+                    </div>
+
+                    <!-- Fecha de Nacimiento -->
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                            Fecha de Nacimiento
+                        </label>
+                        <div class="form-control-plaintext fw-semibold px-3 py-2" style="background: #f8fafc; border-radius: 8px; color: #0f172a;">
+                            @if (Model.FechaNacimiento.HasValue)
+                            {
+                                @Model.FechaNacimiento.Value.ToString("dd 'de' MMMM 'de' yyyy", cultura)
+                                <span class="text-muted small">(@Model.Edad años)</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">No registrada</span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Tipo de Sangre -->
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                            Tipo de Sangre
+                        </label>
+                        <div class="form-control-plaintext fw-semibold px-3 py-2" style="background: #f8fafc; border-radius: 8px; color: #0f172a;">
+                            @if (!string.IsNullOrEmpty(Model.TipoSangre))
+                            {
+                                <span class="text-danger fw-bold" style="font-size: 1.1rem;">@Model.TipoSangre</span> <span class="text-muted">Positivo</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">No registrado</span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Contacto de Emergencia -->
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                            Contacto de Emergencia
+                        </label>
+                        <div class="form-control-plaintext fw-semibold px-3 py-2" style="background: #f8fafc; border-radius: 8px; color: #0f172a;">
+                            @Model.ContactoEmergencia
+                        </div>
+                    </div>
+
+                    <!-- Proveedor de Seguro -->
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                            Proveedor de Seguro
+                        </label>
+                        <div class="form-control-plaintext fw-semibold px-3 py-2" style="background: #f8fafc; border-radius: 8px; color: #0f172a;">
+                            @Model.ProveedorSeguro
+                        </div>
+                    </div>
+
+                    <!-- Médico de Cabecera (full width) -->
+                    <div class="col-12">
+                        <label class="form-label small text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                            Médico de Cabecera
+                        </label>
+                        <div class="form-control-plaintext fw-semibold px-3 py-2" style="background: #f8fafc; border-radius: 8px; color: #0f172a;">
+                            <i class="bi bi-briefcase-medical me-2" style="color: #1e3a8a;"></i>@Model.MedicoCabecera
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerta de Integridad -->
+                <div class="alert mt-4 d-flex align-items-start gap-3" style="background: #eff6ff; border-left: 4px solid #1e3a8a; border-radius: 8px;">
+                    <i class="bi bi-info-circle-fill mt-1" style="color: #1e3a8a; font-size: 1.2rem;"></i>
+                    <div>
+                        <h6 class="fw-bold mb-1" style="color: #1e3a8a; font-size: 0.9rem;">Integridad del Perfil</h6>
+                        <p class="mb-0 small" style="color: #475569; line-height: 1.5;">
+                            Su perfil fue verificado por última vez el @(Model.UltimaVerificacion?.ToString("dd 'de' MMMM 'de' yyyy", cultura)).
+                            Para cambios en su nombre legal o fecha de nacimiento, por favor contacte directamente a la administración del hospital.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actividad Reciente de Seguridad y Preferencias -->
+        <div class="row g-4 mt-2">
+            <!-- Actividad de Seguridad -->
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm" style="border-radius: 14px;">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4" style="color: #0f172a;">Actividad Reciente de Seguridad</h5>
+
+                        <div class="d-flex align-items-start gap-3 pb-3 mb-3" style="border-bottom: 1px solid #e2e8f0;">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                 style="width: 40px; height: 40px; background: #dbeafe; color: #1e3a8a;">
+                                <i class="bi bi-laptop"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="fw-semibold" style="font-size: 0.9rem; color: #0f172a;">Nuevo Inicio de Sesión: Chrome en MacOS</div>
+                                        <div class="small text-muted">San Francisco, USA • Hace 2 horas</div>
+                                    </div>
+                                    <span class="badge" style="background: #dbeafe; color: #1e3a8a; font-size: 0.75rem;">Fui yo</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                 style="width: 40px; height: 40px; background: #dbeafe; color: #1e3a8a;">
+                                <i class="bi bi-shield-lock"></i>
+                            </div>
+                            <div>
+                                <div class="fw-semibold" style="font-size: 0.9rem; color: #0f172a;">Contraseña Cambiada Exitosamente</div>
+                                <div class="small text-muted">15 de febrero de 2024</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preferencias -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm" style="border-radius: 14px;">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4" style="color: #0f172a;">Preferencias</h5>
+
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom: 1px solid #e2e8f0;">
+                            <div>
+                                <div class="fw-semibold" style="font-size: 0.9rem; color: #0f172a;">Notificaciones Push</div>
+                            </div>
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" checked style="width: 3rem; height: 1.5rem;">
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom: 1px solid #e2e8f0;">
+                            <div>
+                                <div class="fw-semibold" style="font-size: 0.9rem; color: #0f172a;">Alertas SMS</div>
+                            </div>
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" style="width: 3rem; height: 1.5rem;">
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-semibold" style="font-size: 0.9rem; color: #0f172a;">Autenticación de Dos Factores</div>
+                            </div>
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" checked style="width: 3rem; height: 1.5rem;">
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3" style="border-top: 1px solid #e2e8f0;">
+                            <a href="@Url.Action("Index", "Configuracion")" class="text-decoration-none fw-semibold" style="color: #1e3a8a; font-size: 0.9rem;">
+                                Administrar todas las preferencias <i class="bi bi-chevron-right small"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

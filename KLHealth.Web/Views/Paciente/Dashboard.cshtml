@@ -1,0 +1,291 @@
+﻿@model KLHealth.Web.Models.ViewModels.PacienteDashboardViewModel
+@{
+    Layout = "_LayoutPaciente";
+}
+
+<!-- Header de Bienvenida -->
+<div class="mb-4">
+    <h1 class="fw-bold text-dark mb-1" style="font-size: 1.75rem; letter-spacing: -0.5px;">Buenos Días, @Model.NombrePaciente</h1>
+    <p class="text-muted mb-0" style="font-size: 0.9rem;">Bienvenido de nuevo a K & L Health. Aquí tienes un resumen de tu información de salud.</p>
+</div>
+
+<!-- KPIs - 4 tarjetas horizontales -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="card kpi-card border-0 h-100">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="text-muted" style="font-size: 0.8rem; font-weight: 500;">Próxima Cita</div>
+                    <div class="kpi-icon">
+                        <i class="bi bi-calendar-event"></i>
+                    </div>
+                </div>
+                <div class="fw-bold text-dark mb-1" style="font-size: 1.2rem;">
+                    @(Model.ProximaCita != null ? Model.ProximaCita.FechaHoraInicio.ToString("dd 'de' MMMM") : "Sin citas")
+                </div>
+                @if(Model.ProximaCita != null) {
+                    <div class="text-muted" style="font-size: 0.75rem;">@(Model.ProximaCita.FechaHoraInicio.ToString("hh:mm tt")) con @Model.MedicoNombre</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card kpi-card border-0 h-100">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="text-muted" style="font-size: 0.8rem; font-weight: 500;">Resultados Pendientes</div>
+                    <div class="kpi-icon">
+                        <i class="bi bi-file-earmark-medical"></i>
+                    </div>
+                </div>
+                <div class="fw-bold text-dark mb-1" style="font-size: 1.2rem;">@Model.TotalResultadosPendientes Nuevos Disponibles</div>
+                @if(Model.TotalResultadosPendientes > 0) {
+                    <div class="text-muted" style="font-size: 0.75rem;">1 reporte de laboratorio pendiente</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card kpi-card border-0 h-100">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="text-muted" style="font-size: 0.8rem; font-weight: 500;">Registros</div>
+                    <div class="kpi-icon">
+                        <i class="bi bi-clipboard-data"></i>
+                    </div>
+                </div>
+                <div class="fw-bold text-dark mb-1" style="font-size: 1.2rem;">@Model.TotalRegistrosMedicos Registros</div>
+                <div class="text-muted" style="font-size: 0.75rem;">Actualizado hace 2 días</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card kpi-card border-0 h-100">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="text-muted" style="font-size: 0.8rem; font-weight: 500;">Resumen de Salud</div>
+                    <div class="kpi-icon kpi-icon-success">
+                        <i class="bi bi-heart-pulse"></i>
+                    </div>
+                </div>
+                <div class="fw-bold text-success mb-1" style="font-size: 1.2rem;">@Model.ResumenSalud <i class="bi bi-circle-fill" style="font-size: 7px; vertical-align: middle;"></i></div>
+                <div class="text-muted" style="font-size: 0.75rem;">Signos vitales dentro del rango</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Columna Izquierda: Próxima Cita y Acciones -->
+    <div class="col-lg-8">
+       
+        <!-- Tarjeta de Próxima Cita -->
+        @if (Model.ProximaCita != null)
+        {
+            var cultura = new System.Globalization.CultureInfo("es-ES");
+
+            <div class="card border-0 mb-4 appointment-card-professional">
+                <!-- Header con estado -->
+                <div class="card-header border-0 py-3 px-4" style="background: #1e3a8a; color: white;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-semibold" style="font-size: 1rem;">Próxima Cita</h5>
+                        <span class="badge bg-white text-primary px-3 py-2 rounded-pill" style="font-size: 0.75rem; font-weight: 600;">
+                            @Model.ProximaCita.Estado
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <!-- Columna izquierda: Foto y datos del médico -->
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="@Model.FotoMedicoUrl"
+                                     alt="@Model.MedicoNombre"
+                                     class="rounded-circle"
+                                     style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #dbeafe; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);">
+                                <div>
+                                    <h4 class="fw-bold text-dark mb-1" style="font-size: 1.2rem;">
+                                        @Model.MedicoNombre
+                                    </h4>
+                                    <p class="fw-semibold mb-2" style="font-size: 0.9rem; color: #1e3a8a;">
+                                        Especialista en @Model.EspecialidadNombre
+                                    </p>
+                                    <p class="text-muted mb-0" style="font-size: 0.85rem;">
+                                        <i class="bi bi-geo-alt me-1"></i>@Model.UbicacionCompleta
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Columna derecha: Fecha y acciones -->
+                        <div class="col-md-6">
+                            <div class="text-md-end mb-3">
+                                <div class="fw-bold text-dark mb-1" style="font-size: 1.1rem;">
+                                    @Model.ProximaCita.FechaHoraInicio.ToString("dd 'de' MMMM, yyyy", cultura)
+                                </div>
+                                <div class="text-muted mb-3" style="font-size: 0.9rem;">
+                                    <i class="bi bi-clock me-1"></i>@Model.ProximaCita.FechaHoraInicio.ToString("hh:mm tt", cultura) (GMT -5)
+                                </div>
+                            </div>
+
+                            <!-- Botones de acción -->
+                            <div class="d-flex gap-2 flex-wrap justify-content-md-end">
+                                <a href="@Url.Action("Detalles", "Citas", new { id = Model.ProximaCita.Id })"
+                                   class="btn btn-primary px-4 py-2"
+                                   style="background: #1e3a8a; border-color: #1e3a8a; border-radius: 8px; font-size: 0.9rem; font-weight: 500;">
+                                    <i class="bi bi-eye me-2"></i>Ver Detalles
+                                </a>
+                                <a href="@Url.Action("Reprogramar", "Citas", new { id = Model.ProximaCita.Id })"
+                                   class="btn btn-outline-secondary px-4 py-2"
+                                   style="border-radius: 8px; font-size: 0.9rem;">
+                                    <i class="bi bi-arrow-clockwise me-2"></i>Reprogramar
+                                </a>
+                                <form method="post" action="@Url.Action("Cancelar", "Citas", new { id = Model.ProximaCita.Id })"
+                                      class="d-inline"
+                                      onsubmit="return confirm('¿Estás seguro de cancelar esta cita? Esta acción no se puede deshacer.');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-link text-decoration-none px-2 py-2"
+                                            style="color: #dc2626; font-size: 0.9rem;">
+                                        <i class="bi bi-x-circle me-1"></i>Cancelar
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Acciones Rápidas -->
+        <div class="card border-0">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4" style="font-size: 1.05rem;">Acciones Rápidas</h5>
+                <div class="row g-3">
+                    <div class="col-6 col-md-4">
+                        <a href="@Url.Action("Agendar", "Citas")" class="quick-action-card">
+                            <div class="quick-action-icon">
+                                <i class="bi bi-plus-circle"></i>
+                            </div>
+                            <div class="fw-medium text-dark" style="font-size: 0.85rem;">Agendar Nueva Cita</div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <a href="@Url.Action("Index", "Resultados")" class="quick-action-card">
+                            <div class="quick-action-icon">
+                                <i class="bi bi-file-earmark-medical"></i>
+                            </div>
+                            <div class="fw-medium text-dark" style="font-size: 0.85rem;">Ver Resultados Médicos</div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <a href="@Url.Action("Index", "HistorialMedico")" class="quick-action-card">
+                            <div class="quick-action-icon">
+                                <i class="bi bi-clock-history"></i>
+                            </div>
+                            <div class="fw-medium text-dark" style="font-size: 0.85rem;">Ver Historial Médico</div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <a href="@Url.Action("Index", "Doctores")" class="quick-action-card">
+                            <div class="quick-action-icon">
+                                <i class="bi bi-person-search"></i>
+                            </div>
+                            <div class="fw-medium text-dark" style="font-size: 0.85rem;">Buscar un Doctor</div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <a href="@Url.Action("Index", "Especialidades")" class="quick-action-card">
+                            <div class="quick-action-icon">
+                                <i class="bi bi-grid-3x3-gap"></i>
+                            </div>
+                            <div class="fw-medium text-dark" style="font-size: 0.85rem;">Explorar Especialidades</div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <a href="@Url.Action("Index", "Hospital")" class="quick-action-card">
+                            <div class="quick-action-icon">
+                                <i class="bi bi-hospital"></i>
+                            </div>
+                            <div class="fw-medium text-dark" style="font-size: 0.85rem;">Servicios Hospitalarios</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna Derecha: Notificaciones y Bienestar -->
+    <div class="col-lg-4">
+        <!-- Notificaciones Recientes -->
+        <div class="card border-0 mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0" style="font-size: 1.05rem;">Notificaciones Recientes</h5>
+                    <a href="#" class="text-decoration-none small fw-semibold" style="color: var(--blue-700); font-size: 0.8rem;">Marcar todo como leído</a>
+                </div>
+                
+                <div class="d-flex flex-column gap-2">
+                    @if (Model.UltimasNotificaciones.Any())
+                    {
+                        @foreach (var notif in Model.UltimasNotificaciones)
+                        {
+                            <div class="notification-item">
+                                <div class="d-flex gap-3">
+                                    <div class="notification-icon rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                                        <i class="bi @notif.Icono"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold text-dark mb-1" style="font-size: 0.85rem;">@notif.Titulo</div>
+                                        <div class="text-muted" style="font-size: 0.78rem; line-height: 1.4;">@notif.Mensaje</div>
+                                        <div class="text-muted" style="font-size: 0.72rem; margin-top: 0.25rem;">
+                                            @GetTimeAgo(notif.Fecha)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-bell-slash" style="font-size: 2rem; opacity: 0.3;"></i>
+                            <p class="small mb-0 mt-2">No tienes notificaciones</p>
+                        </div>
+                    }
+                </div>
+                
+                <div class="mt-3 text-center">
+                    <a href="@Url.Action("Index", "Notificaciones")" class="text-decoration-none fw-semibold" style="color: var(--blue-700); font-size: 0.85rem;">
+                        Ver Todas las Notificaciones <i class="bi bi-arrow-right small"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banner de Bienestar -->
+        <div class="card border-0 wellness-banner">
+            <div class="card-body p-4 position-relative overflow-hidden">
+                <i class="bi bi-sun-fill position-absolute end-0 bottom-0 me-2 mb-2" style="font-size: 7rem; opacity: 0.12; color: var(--blue-900);"></i>
+                <h5 class="fw-bold mb-2" style="font-size: 1.05rem; color: var(--blue-900);">Bienestar de Verano</h5>
+                <p class="mb-3" style="color: #475569; font-size: 0.85rem; line-height: 1.5;">La hidratación es clave durante las altas temperaturas. Intenta beber al menos 3 litros de agua hoy.</p>
+                <button class="btn btn-wellness btn-sm px-4 py-2" style="border-radius: 8px; font-size: 0.85rem;">
+                    Saber Más
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetTimeAgo(DateTime date)
+    {
+        var span = DateTime.Now - date;
+        if (span.TotalMinutes < 60) return $"hace {span.Minutes} minutos";
+        if (span.TotalHours < 24) return $"hace {span.Hours} horas";
+        return $"hace {span.Days} días";
+    }
+}

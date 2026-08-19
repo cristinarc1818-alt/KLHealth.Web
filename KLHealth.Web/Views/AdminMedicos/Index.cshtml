@@ -1,0 +1,528 @@
+﻿
+@model KLHealth.Web.Models.ViewModels.AdminMedicosViewModel
+@{
+    Layout = "_LayoutAdmin";
+}
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="fw-bold mb-1" style="font-size: 1.75rem; color: var(--blue-700); letter-spacing: -0.5px;">
+            Gestión de Médicos
+        </h1>
+        <p class="text-muted mb-0" style="font-size: 0.9rem;">
+            Supervise a su personal médico, disponibilidad y carga diaria de pacientes.
+        </p>
+    </div>
+
+    <a href="@Url.Action("Crear", "AdminMedicos")"
+       class="btn btn-primary d-flex align-items-center gap-2 px-4 py-2"
+       style="background: var(--blue-900); border-color: var(--blue-900); border-radius: 10px; font-size: 0.9rem; font-weight: 500;">
+        <i class="bi bi-person-plus"></i>
+        <span>Añadir Nuevo Médico</span>
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success border-0 shadow-sm mb-4 d-flex align-items-center gap-2"
+         style="border-radius: 10px; font-size: 0.9rem; background: #f0fdf4; color: #166534;">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger border-0 shadow-sm mb-4 d-flex align-items-center gap-2"
+         style="border-radius: 10px; font-size: 0.9rem; background: #fef2f2; color: #991b1b;">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>@TempData["Error"]</span>
+    </div>
+}
+
+<!-- FILTROS: Especialidades (Tabs) -->
+<div class="mb-4">
+    <div class="d-flex gap-2 flex-wrap">
+
+        @foreach (var esp in Model.EspecialidadesDisponibles)
+        {
+            <a href="@Url.Action("Index", "AdminMedicos", new { especialidad = esp, busqueda = Model.Busqueda })"
+               class="filter-tab @(Model.EspecialidadFiltro == esp || (string.IsNullOrEmpty(Model.EspecialidadFiltro) && esp == "Todos") ? "active" : "")">
+                @esp
+            </a>
+        }
+
+        <a href="@Url.Action("Index", "AdminMedicos", new { especialidad = Model.EspecialidadFiltro, busqueda = "" })"
+           class="btn btn-sm btn-outline-secondary"
+           style="border-radius: 8px; font-size: 0.82rem;">
+            <i class="bi bi-x-circle me-1"></i>Limpiar búsqueda
+        </a>
+
+    </div>
+</div>
+
+<!-- BARRA DE BÚSQUEDA -->
+<div class="card border-0 mb-4" style="background: #f8fafc; border-radius: 12px;">
+    <div class="card-body p-4">
+
+        <form asp-action="Index" method="get">
+
+            <input type="hidden"
+                   name="especialidad"
+                   value="@Model.EspecialidadFiltro" />
+
+            <div class="row g-3">
+
+                <div class="col-md-8">
+                    <input type="text"
+                           name="busqueda"
+                           class="form-control"
+                           placeholder="Buscar por nombre, número de licencia o especialidad..."
+                           value="@Model.Busqueda"
+                           style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                </div>
+
+                <div class="col-md-4">
+                    <button type="submit"
+                            class="btn btn-primary w-100 py-2"
+                            style="background: var(--blue-900); border-color: var(--blue-900); border-radius: 10px; font-weight: 600;">
+                        <i class="bi bi-search me-1"></i>Buscar
+                    </button>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<!-- GRID DE MÉDICOS -->
+@if (Model.Medicos.Any())
+{
+    <div class="row g-4 mb-4">
+
+        @foreach (var medico in Model.Medicos)
+        {
+            // ============================================================
+            // ESTADO DEL MÉDICO
+            // ============================================================
+
+            string estadoBadge = "";
+            string estadoClass = "";
+
+            if (!medico.EstaDisponible)
+            {
+                estadoBadge = "No Disponible";
+                estadoClass = "bg-danger bg-opacity-10 text-danger";
+            }
+            else if (medico.EstaDeGuardia)
+            {
+                estadoBadge = "De Guardia";
+                estadoClass = "bg-success bg-opacity-10 text-success";
+            }
+            else
+            {
+                estadoBadge = "En Descanso";
+                estadoClass = "bg-secondary bg-opacity-10 text-secondary";
+            }
+
+
+            // ============================================================
+            // LIMPIAR NOMBRE DEL MÉDICO
+            // ============================================================
+
+            string nombreLimpio = medico.NombreCompleto?.Trim() ?? "";
+            string tituloLimpio = medico.Titulo?.Trim() ?? "";
+
+            // Quitar cualquier título que ya venga dentro de NombreCompleto
+            while (
+                nombreLimpio.StartsWith("Dr.", StringComparison.OrdinalIgnoreCase) ||
+                nombreLimpio.StartsWith("Dra.", StringComparison.OrdinalIgnoreCase) ||
+                nombreLimpio.StartsWith("Dr ", StringComparison.OrdinalIgnoreCase) ||
+                nombreLimpio.StartsWith("Dra ", StringComparison.OrdinalIgnoreCase) ||
+                nombreLimpio.StartsWith("Doctor ", StringComparison.OrdinalIgnoreCase) ||
+                nombreLimpio.StartsWith("Doctora ", StringComparison.OrdinalIgnoreCase)
+            )
+            {
+                if (nombreLimpio.StartsWith("Dra.", StringComparison.OrdinalIgnoreCase))
+                {
+                    nombreLimpio = nombreLimpio.Substring(4).Trim();
+                }
+                else if (nombreLimpio.StartsWith("Dr.", StringComparison.OrdinalIgnoreCase))
+                {
+                    nombreLimpio = nombreLimpio.Substring(3).Trim();
+                }
+                else if (nombreLimpio.StartsWith("Dra ", StringComparison.OrdinalIgnoreCase))
+                {
+                    nombreLimpio = nombreLimpio.Substring(4).Trim();
+                }
+                else if (nombreLimpio.StartsWith("Dr ", StringComparison.OrdinalIgnoreCase))
+                {
+                    nombreLimpio = nombreLimpio.Substring(3).Trim();
+                }
+                else if (nombreLimpio.StartsWith("Doctora ", StringComparison.OrdinalIgnoreCase))
+                {
+                    nombreLimpio = nombreLimpio.Substring(8).Trim();
+                }
+                else if (nombreLimpio.StartsWith("Doctor ", StringComparison.OrdinalIgnoreCase))
+                {
+                    nombreLimpio = nombreLimpio.Substring(7).Trim();
+                }
+            }
+
+
+            // ============================================================
+            // NORMALIZAR TÍTULO
+            // ============================================================
+
+            if (tituloLimpio.Contains("Dra", StringComparison.OrdinalIgnoreCase) ||
+                tituloLimpio.Contains("Doctora", StringComparison.OrdinalIgnoreCase))
+            {
+                tituloLimpio = "Dra.";
+            }
+            else if (tituloLimpio.Contains("Dr", StringComparison.OrdinalIgnoreCase) ||
+                     tituloLimpio.Contains("Doctor", StringComparison.OrdinalIgnoreCase))
+            {
+                tituloLimpio = "Dr.";
+            }
+            else
+            {
+                tituloLimpio = "";
+            }
+
+
+            <div class="col-md-6 col-lg-4">
+
+                <div class="card medico-card border-0 h-100">
+
+                    <div class="card-body p-4">
+
+                        <!-- Header: Foto + Estado -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+
+                            <img src="@(medico.FotoPerfilUrl ?? "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&h=200&fit=crop&crop=face")"
+                                 alt="@nombreLimpio"
+                                 class="rounded-circle"
+                                 style="width: 60px; height: 60px; object-fit: cover; border: 3px solid #dbeafe;">
+
+                            <span class="badge rounded-pill px-3 py-2 @estadoClass"
+                                  style="font-size: 0.7rem; font-weight: 600;">
+                                @estadoBadge
+                            </span>
+
+                        </div>
+
+
+                        <!-- Información del médico -->
+                        <h5 class="fw-bold mb-1"
+                            style="font-size: 1.1rem; color: #0f172a;">
+
+                            @if (!string.IsNullOrEmpty(tituloLimpio))
+                            {
+                                @tituloLimpio
+                                @:&nbsp;
+                            }
+
+                            @nombreLimpio
+
+                        </h5>
+
+                        <p class="text-muted mb-2"
+                           style="font-size: 0.9rem;">
+                            @medico.Especialidad
+                        </p>
+
+                        <p class="small text-muted mb-3"
+                           style="font-size: 0.82rem;">
+                            <i class="bi bi-patch-check me-1"></i>
+                            Licencia: @medico.NumeroLicencia
+                        </p>
+
+
+                        <!-- Estadísticas -->
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-3"
+                             style="border-bottom: 1px solid #e2e8f0;">
+
+                            <div class="text-center">
+                                <div class="fw-bold"
+                                     style="color: var(--blue-700); font-size: 1.2rem;">
+                                    @medico.PacientesHoy
+                                </div>
+
+                                <small class="text-muted"
+                                       style="font-size: 0.7rem;">
+                                    PACIENTES HOY
+                                </small>
+                            </div>
+
+                            <div class="text-center">
+                                <div class="fw-bold"
+                                     style="color: var(--blue-700); font-size: 1.2rem;">
+                                    @medico.AniosExperiencia
+                                </div>
+
+                                <small class="text-muted"
+                                       style="font-size: 0.7rem;">
+                                    AÑOS EXP.
+                                </small>
+                            </div>
+
+                            <div class="text-center">
+                                <div class="fw-bold"
+                                     style="color: var(--blue-700); font-size: 1.2rem;">
+                                    @medico.CalificacionPromedio.ToString("0.0")
+                                </div>
+
+                                <small class="text-muted"
+                                       style="font-size: 0.7rem;">
+                                    CALIFICACIÓN
+                                </small>
+                            </div>
+
+                        </div>
+
+
+                        <!-- Botones de acción -->
+                        <div class="d-grid gap-2">
+
+                            <a href="@Url.Action("Detalles", "AdminMedicos", new { id = medico.Id })"
+                               class="btn btn-outline-primary py-2"
+                               style="border-color: var(--blue-900); color: var(--blue-900); border-radius: 8px; font-size: 0.85rem;">
+                                <i class="bi bi-eye me-1"></i>Ver Detalles
+                            </a>
+
+                            <div class="d-flex gap-2">
+
+                                <a href="@Url.Action("Editar", "AdminMedicos", new { id = medico.Id })"
+                                   class="btn btn-sm btn-outline-secondary flex-fill"
+                                   style="border-radius: 8px; font-size: 0.8rem;">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+
+                                <form method="post"
+                                      action="@Url.Action("Eliminar", "AdminMedicos", new { id = medico.Id })"
+                                      class="flex-fill"
+                                      onsubmit="return confirm('¿Está seguro de eliminar este médico? Esta acción no se puede deshacer.');">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <button type="submit"
+                                            class="btn btn-sm btn-outline-danger w-100"
+                                            style="border-radius: 8px; font-size: 0.8rem;">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+
+                                </form>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+
+    <!-- PAGINACIÓN -->
+    @if (Model.TotalPaginas > 1)
+    {
+        <nav aria-label="Paginación de médicos" class="mb-4">
+
+            <ul class="pagination justify-content-center gap-2">
+
+                <li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
+
+                    <a class="page-link"
+                       href="@Url.Action("Index", "AdminMedicos", new { especialidad = Model.EspecialidadFiltro, busqueda = Model.Busqueda, pagina = Model.PaginaActual - 1 })"
+                       style="border-radius: 8px; border-color: #e2e8f0; color: #475569;">
+
+                        <i class="bi bi-chevron-left"></i> Anterior
+
+                    </a>
+                </li>
+
+
+                @for (int i = 1; i <= Model.TotalPaginas; i++)
+                {
+                    <li class="page-item @(i == Model.PaginaActual ? "active" : "")">
+
+                        <a class="page-link"
+                           href="@Url.Action("Index", "AdminMedicos", new { especialidad = Model.EspecialidadFiltro, busqueda = Model.Busqueda, pagina = i })"
+                           style="@(i == Model.PaginaActual ? "background: var(--blue-900); border-color: var(--blue-900); color: white; border-radius: 8px;" : "border-radius: 8px; border-color: #e2e8f0; color: #475569;")">
+
+                            @i
+
+                        </a>
+                    </li>
+                }
+
+
+                <li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
+
+                    <a class="page-link"
+                       href="@Url.Action("Index", "AdminMedicos", new { especialidad = Model.EspecialidadFiltro, busqueda = Model.Busqueda, pagina = Model.PaginaActual + 1 })"
+                       style="border-radius: 8px; border-color: #e2e8f0; color: #475569;">
+
+                        Siguiente <i class="bi bi-chevron-right"></i>
+
+                    </a>
+                </li>
+
+            </ul>
+        </nav>
+
+
+        <div class="text-center">
+
+            <small class="text-muted"
+                   style="font-size: 0.85rem;">
+
+                Mostrando
+                <strong>@Model.Medicos.Count</strong>
+                de
+                <strong>@Model.TotalRegistros</strong>
+                médicos
+
+                (Página
+                <strong>@Model.PaginaActual</strong>
+                de
+                <strong>@Model.TotalPaginas</strong>)
+
+            </small>
+
+        </div>
+    }
+}
+else
+{
+    <div class="empty-state-container">
+
+        <div class="empty-state-icon">
+            <i class="bi bi-person-search"></i>
+        </div>
+
+        <h4 class="fw-bold text-dark mb-2">
+            No se encontraron médicos
+        </h4>
+
+        <p class="text-muted mb-4"
+           style="font-size: 0.95rem;">
+
+            @(string.IsNullOrEmpty(Model.Busqueda) && Model.EspecialidadFiltro == "Todos"
+                ? "No hay médicos registrados en el sistema."
+                : "Intenta con otros términos de búsqueda o filtros.")
+
+        </p>
+
+        @if (!string.IsNullOrEmpty(Model.Busqueda) ||
+             Model.EspecialidadFiltro != "Todos")
+        {
+            <a href="@Url.Action("Index", "AdminMedicos")"
+               class="btn btn-primary px-4 py-2"
+               style="border-radius: 10px;">
+
+                <i class="bi bi-x-circle me-2"></i>
+                Limpiar filtros
+
+            </a>
+        }
+        else
+        {
+            <a href="@Url.Action("Crear", "AdminMedicos")"
+               class="btn btn-primary px-4 py-2"
+               style="border-radius: 10px;">
+
+                <i class="bi bi-person-plus me-2"></i>
+                Añadir Primer Médico
+
+            </a>
+        }
+
+    </div>
+}
+
+
+@section Styles {
+
+    <style>
+
+        /* Tabs de filtros */
+        .filter-tab {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.6rem 1.2rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            color: #475569;
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+            .filter-tab:hover {
+                background: #f8fafc;
+                border-color: #cbd5e1;
+                color: var(--blue-700);
+                text-decoration: none;
+            }
+
+            .filter-tab.active {
+                background: var(--blue-900);
+                border-color: var(--blue-900);
+                color: white;
+            }
+
+
+        /* Tarjetas de médicos */
+        .medico-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            transition: all 0.25s ease;
+        }
+
+            .medico-card:hover {
+                box-shadow: 0 8px 24px rgba(30, 58, 138, 0.1);
+                transform: translateY(-4px);
+                border-color: #cbd5e1;
+            }
+
+
+        /* Estado vacío */
+        .empty-state-container {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-state-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 4px 16px rgba(30, 58, 138, 0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: var(--blue-700);
+            font-size: 1.8rem;
+        }
+
+
+        @@media (max-width: 768px) {
+
+            .medico-card .card-body {
+                padding: 1.5rem;
+            }
+        }
+
+    </style>
+}
+```

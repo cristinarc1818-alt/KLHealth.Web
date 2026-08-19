@@ -1,0 +1,219 @@
+﻿@model KLHealth.Web.Models.ViewModels.MedicoFormViewModel
+@{
+    Layout = "_LayoutAdmin";
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h1 class="fw-bold mb-1" style="font-size: 1.75rem; color: var(--blue-700); letter-spacing: -0.5px;">Editar Médico</h1>
+    <p class="text-muted mb-0" style="font-size: 0.9rem;">Actualice la información profesional y de contacto del especialista.</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm" style="border-radius: 14px;">
+            <div class="card-body p-4">
+                <form asp-action="Editar" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Campos ocultos necesarios para la actualización -->
+                    <input type="hidden" asp-for="MedicoId" />
+                    <input type="hidden" asp-for="UsuarioId" />
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="border-radius: 10px;"></div>
+
+                    <!-- SECCIÓN 1: DATOS DEL USUARIO -->
+                    <h5 class="fw-bold mb-3" style="color: #0f172a; font-size: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">
+                        <i class="bi bi-person-circle me-2" style="color: var(--blue-700);"></i>Datos de Acceso y Contacto
+                    </h5>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label asp-for="NombreCompleto" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                <i class="bi bi-person me-1"></i>Nombre Completo
+                            </label>
+                            <input asp-for="NombreCompleto" class="form-control" placeholder="Ej: Juan Pérez García"
+                                   style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                            <span asp-validation-for="NombreCompleto" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                <i class="bi bi-envelope me-1"></i>Correo Electrónico
+                            </label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="juan.perez@klhealth.com"
+                                   style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Telefono" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                <i class="bi bi-telephone me-1"></i>Teléfono
+                            </label>
+                            <input asp-for="Telefono" class="form-control" placeholder="+1 (555) 000-0000"
+                                   style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                            <span asp-validation-for="Telefono" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Password" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                <i class="bi bi-lock me-1"></i>Nueva Contraseña <small class="text-muted">(Opcional)</small>
+                            </label>
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Dejar en blanco para no cambiar"
+                                   style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ConfirmPassword" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                <i class="bi bi-shield-lock me-1"></i>Confirmar Contraseña
+                            </label>
+                            <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="••••••••"
+                                   style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 2: DATOS PROFESIONALES -->
+                    <h5 class="fw-bold mb-3" style="color: #0f172a; font-size: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">
+                        <i class="bi bi-briefcase-medical me-2" style="color: var(--blue-700);"></i>Datos Profesionales
+                    </h5>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="NumeroLicencia" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                <i class="bi bi-patch-check me-1"></i>Número de Licencia
+                            </label>
+                            <input asp-for="NumeroLicencia" class="form-control" placeholder="Ej: LIC-123456"
+                                   style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                            <span asp-validation-for="NumeroLicencia" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Titulo" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                <i class="bi bi-award me-1"></i>Título
+                            </label>
+                            <select asp-for="Titulo" class="form-select"
+                                    style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                                <option value="Dr.">Dr.</option>
+                                <option value="Dra.">Dra.</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="EspecialidadId" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                <i class="bi bi-heart-pulse me-1"></i>Especialidad
+                            </label>
+                            <select asp-for="EspecialidadId" class="form-select"
+                                    style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                                <option value="">-- Seleccione una especialidad --</option>
+                                @foreach (var esp in Model.Especialidades)
+                                {
+                                    <option value="@esp.Id">@esp.Nombre</option>
+                                }
+                            </select>
+                            <span asp-validation-for="EspecialidadId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="AniosExperiencia" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                <i class="bi bi-calendar-check me-1"></i>Años de Experiencia
+                            </label>
+                            <input asp-for="AniosExperiencia" type="number" class="form-control" placeholder="Ej: 10"
+                                   style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                            <span asp-validation-for="AniosExperiencia" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="CostoConsulta" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                <i class="bi bi-currency-dollar me-1"></i>Costo de Consulta
+                            </label>
+                            <input asp-for="CostoConsulta" type="number" step="0.01" class="form-control" placeholder="0.00"
+                                   style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                            <span asp-validation-for="CostoConsulta" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Biografia" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                <i class="bi bi-file-text me-1"></i>Biografía / Perfil Profesional
+                            </label>
+                            <textarea asp-for="Biografia" class="form-control" rows="4" placeholder="Breve descripción de su experiencia y enfoque médico..."
+                                      style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem; resize: none;"></textarea>
+                            <span asp-validation-for="Biografia" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 3: ESTADO Y DISPONIBILIDAD -->
+                    <h5 class="fw-bold mb-3" style="color: #0f172a; font-size: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">
+                        <i class="bi bi-toggles me-2" style="color: var(--blue-700);"></i>Estado y Disponibilidad
+                    </h5>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch p-3" style="background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+                                <input class="form-check-input" type="checkbox" role="switch" asp-for="EstaDeGuardia" id="guardiaSwitch" style="width: 3rem; height: 1.5rem;">
+                                <label class="form-check-label fw-semibold ms-2" for="guardiaSwitch" style="font-size: 0.9rem;">
+                                    <i class="bi bi-shield-check me-1"></i>Está de Guardia
+                                </label>
+                                <div class="small text-muted ms-5 mt-1">Activo para emergencias y turnos actuales.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch p-3" style="background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+                                <input class="form-check-input" type="checkbox" role="switch" asp-for="EstaDisponible" id="disponibleSwitch" style="width: 3rem; height: 1.5rem;">
+                                <label class="form-check-label fw-semibold ms-2" for="disponibleSwitch" style="font-size: 0.9rem;">
+                                    <i class="bi bi-calendar-check me-1"></i>Disponible para Citas
+                                </label>
+                                <div class="small text-muted ms-5 mt-1">Los pacientes pueden agendar citas con este médico.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="d-flex gap-3 mt-4 pt-3" style="border-top: 1px solid #e2e8f0;">
+                        <button type="submit" class="btn btn-primary px-4 py-2"
+                                style="background: var(--blue-900); border-color: var(--blue-900); border-radius: 10px; font-weight: 600;">
+                            <i class="bi bi-check-circle me-2"></i>Guardar Cambios
+                        </button>
+                        <a href="@Url.Action("Index", "AdminMedicos")" class="btn btn-outline-secondary px-4 py-2"
+                           style="border-radius: 10px;">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel lateral informativo -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-3" style="border-radius: 12px; background: #eff6ff; border-left: 4px solid var(--blue-900);">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-2" style="font-size: 0.9rem; color: var(--blue-900);">
+                    <i class="bi bi-info-circle me-1"></i>Nota sobre la Contraseña
+                </h6>
+                <p class="mb-0 small" style="font-size: 0.82rem; color: #475569; line-height: 1.6;">
+                    Si no desea cambiar la contraseña actual del médico, <strong>deje los campos de contraseña en blanco</strong>.
+                    Solo se actualizará si ingresa una nueva.
+                </p>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="border-radius: 12px; background: #fef3c7; border-left: 4px solid #f59e0b;">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-2" style="font-size: 0.9rem; color: #92400e;">
+                    <i class="bi bi-exclamation-triangle me-1"></i>Validaciones
+                </h6>
+                <ul class="mb-0 small" style="font-size: 0.82rem; color: #78350f; line-height: 1.6; padding-left: 1.2rem;">
+                    <li>El correo electrónico debe ser único en el sistema.</li>
+                    <li>El número de licencia no puede repetirse.</li>
+                    <li>Si cambia la contraseña, debe tener al menos 8 caracteres.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,464 @@
+﻿@model KLHealth.Web.Models.ViewModels.HistorialViewModel
+@{
+    Layout = "_LayoutPaciente";
+    var cultura = new System.Globalization.CultureInfo("es-ES");
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+            <h1 class="fw-bold mb-1" style="font-size: 1.8rem; color: #1e3a8a; letter-spacing: -0.5px;">Historial Médico</h1>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">Una cronología completa de su trayectoria de salud e hitos.</p>
+        </div>
+
+        <!-- Tabs de años -->
+        <div class="d-flex gap-2 flex-wrap">
+            @foreach (var ano in Model.AnosDisponibles)
+            {
+                <a href="@Url.Action("Index", "HistorialMedico", new { ano = ano.ToString() })"
+                   class="year-tab @(Model.AnoSeleccionado == ano.ToString() ? "active" : "")">
+                    @ano
+                </a>
+            }
+            <a href="@Url.Action("Index", "HistorialMedico", new { ano = "Todos" })"
+               class="year-tab @(Model.AnoSeleccionado == "Todos" ? "active" : "")">
+                Todos
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- TIMELINE AGRUPADO POR MES -->
+@if (Model.RegistrosAgrupados.Any())
+{
+    <div class="timeline-wrapper">
+        @foreach (var grupo in Model.RegistrosAgrupados)
+        {
+            <div class="timeline-month-section">
+                <div class="timeline-month-label">
+                    @grupo.Key
+                </div>
+
+                <div class="timeline-items-container">
+                    @foreach (var registro in grupo.Value)
+                    {
+                        var (icono, colorBg, colorBadge, badgeText) = registro.TipoRegistro switch
+                        {
+                            "Tratamiento" => ("bi-activity", "#dbeafe", "#1e3a8a", "TRATAMIENTO"),
+                            "Receta" => ("bi-capsule", "#f1f5f9", "#475569", "RECETA"),
+                            "Laboratorio" => ("bi-droplet-half", "#dbeafe", "#1e3a8a", "LABORATORIO"),
+                            "Vacunacion" => ("bi-shield-fill-check", "#fee2e2", "#991b1b", "VACUNACIÓN"),
+                            "Diagnostico" => ("bi-clipboard2-pulse", "#1e293b", "#ffffff", "DIAGNÓSTICO"),
+                            _ => ("bi-calendar-check", "#dbeafe", "#1e3a8a", "CONSULTA")
+                        };
+
+                        <div class="timeline-item">
+                            <div class="timeline-marker">
+                                <div class="timeline-icon" style="background: @colorBg; color: @colorBadge;">
+                                    <i class="bi @icono"></i>
+                                </div>
+                            </div>
+
+                            <div class="timeline-card">
+                                <div class="timeline-card-header">
+                                    <div>
+                                        <span class="badge-type" style="background: @colorBg; color: @colorBadge;">
+                                            @badgeText
+                                        </span>
+                                        <span class="timeline-date">
+                                            @registro.FechaConsulta.ToString("dd 'de' MMM, yyyy", cultura)
+                                        </span>
+                                    </div>
+                                    @if (registro.TipoRegistro == "Tratamiento" || registro.TipoRegistro == "Laboratorio")
+                                    {
+                                        <button class="btn btn-outline-primary btn-sm" style="border-color: #1e3a8a; color: #1e3a8a; border-radius: 8px; font-size: 0.85rem;">
+                                            <i class="bi bi-download me-1"></i>Detalles
+                                        </button>
+                                    }
+                                </div>
+
+                                <h5 class="fw-bold mb-2 mt-2" style="font-size: 1.1rem; color: #0f172a;">
+                                    @registro.Titulo
+                                </h5>
+
+                                <p class="text-muted mb-3" style="font-size: 0.9rem; line-height: 1.6;">
+                                    @registro.Descripcion
+                                </p>
+
+                                @if (registro.TipoRegistro == "Laboratorio" && registro.Valor1Nombre != null)
+                                {
+                                    <div class="lab-values mb-3">
+                                        <div class="lab-value-row">
+                                            <span>@registro.Valor1Nombre</span>
+                                            <span class="fw-bold" style="color: #1e3a8a;">@registro.Valor1Resultado</span>
+                                        </div>
+                                        @if (registro.Valor2Nombre != null)
+                                        {
+                                            <div class="lab-value-row">
+                                                <span>@registro.Valor2Nombre</span>
+                                                <span class="fw-bold" style="color: #1e3a8a;">@registro.Valor2Resultado</span>
+                                            </div>
+                                        }
+                                    </div>
+                                    <button class="btn btn-primary w-100 py-2" style="background: #eff6ff; color: #1e3a8a; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 500;">
+                                        Ver Informe Completo
+                                    </button>
+                                }
+
+                                @if (registro.TipoRegistro == "Receta" && registro.RecargasRestantes.HasValue)
+                                {
+                                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3" style="border-top: 1px solid #e2e8f0;">
+                                        <span class="small fw-semibold" style="color: #1e3a8a;">
+                                            Recargas: @registro.RecargasRestantes restantes
+                                        </span>
+                                        <i class="bi bi-info-circle text-muted" style="font-size: 1.1rem;"></i>
+                                    </div>
+                                }
+
+                                @if (registro.TipoRegistro == "Vacunacion" && registro.ProximoRefuerzo.HasValue)
+                                {
+                                    <div class="small text-muted mt-2">
+                                        <i class="bi bi-calendar-event me-1"></i>
+                                        Siguiente refuerzo: @registro.ProximoRefuerzo.Value.ToString("yyyy")
+                                    </div>
+                                }
+
+                                @if (registro.TipoRegistro == "Diagnostico")
+                                {
+                                    <div class="row g-3 mt-3">
+                                        @if (!string.IsNullOrEmpty(registro.NotasAdicionales))
+                                        {
+                                            <div class="col-md-4">
+                                                <div class="info-box">
+                                                    <div class="info-box-label">MÉDICO DE CABECERA</div>
+                                                    <div class="info-box-value">@registro.NotasAdicionales.Replace("MÉDICO DE CABECERA: ", "")</div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(registro.Severidad))
+                                        {
+                                            <div class="col-md-4">
+                                                <div class="info-box">
+                                                    <div class="info-box-label">SEVERIDAD DE SÍNTOMAS</div>
+                                                    <div class="info-box-value">@registro.Severidad</div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(registro.EstadoRegistro))
+                                        {
+                                            <div class="col-md-4">
+                                                <div class="info-box">
+                                                    <div class="info-box-label">ESTADO</div>
+                                                    <div class="info-box-value" style="color: #1e3a8a; font-weight: 600;">@registro.EstadoRegistro</div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+
+                                @if (!string.IsNullOrEmpty(registro.Ubicacion) && registro.TipoRegistro != "Diagnostico")
+                                {
+                                    <div class="d-flex gap-3 flex-wrap mt-3">
+                                        @if (registro.Medico != null)
+                                        {
+                                            <div class="info-pill">
+                                                <i class="bi bi-person-badge"></i>
+                                                <span>@registro.Medico.Titulo @registro.Medico.Usuario.NombreCompleto</span>
+                                            </div>
+                                        }
+                                        <div class="info-pill">
+                                            <i class="bi bi-geo-alt"></i>
+                                            <span>@registro.Ubicacion</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Botón Cargar Más -->
+    <div class="text-center mt-5">
+        <button class="btn btn-outline-secondary px-5 py-3" style="border-radius: 12px; font-size: 0.95rem; border-color: #cbd5e1;">
+            <i class="bi bi-chevron-down me-2"></i>Cargar Registros Anteriores
+        </button>
+    </div>
+}
+else
+{
+    <div class="empty-state-container">
+        <div class="empty-state-icon">
+            <i class="bi bi-clock-history"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-2">No hay historial médico registrado</h4>
+        <p class="text-muted mb-0" style="font-size: 0.95rem;">
+            Tus consultas pasadas y diagnósticos aparecerán aquí una vez que sean registrados por tu médico.
+        </p>
+    </div>
+}
+
+<!-- Botón Flotante -->
+<button class="btn-floating-refresh" title="Actualizar">
+    <i class="bi bi-arrow-clockwise"></i>
+</button>
+
+@section Styles {
+    <style>
+        /* Tabs de años */
+        .year-tab {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1.2rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            color: #475569;
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+            .year-tab:hover {
+                background: #f8fafc;
+                border-color: #cbd5e1;
+                color: #1e3a8a;
+                text-decoration: none;
+            }
+
+            .year-tab.active {
+                background: #1e3a8a;
+                border-color: #1e3a8a;
+                color: white;
+            }
+
+        /* Timeline */
+        .timeline-wrapper {
+            position: relative;
+            padding-left: 30px;
+        }
+
+            .timeline-wrapper::before {
+                content: '';
+                position: absolute;
+                left: 44px;
+                top: 0;
+                bottom: 0;
+                width: 2px;
+                background: repeating-linear-gradient( to bottom, #cbd5e1 0, #cbd5e1 8px, transparent 8px, transparent 16px );
+            }
+
+        .timeline-month-section {
+            margin-bottom: 3rem;
+        }
+
+        .timeline-month-label {
+            display: inline-block;
+            background: #1e3a8a;
+            color: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .timeline-items-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 1.5rem;
+            position: relative;
+        }
+
+        .timeline-marker {
+            flex-shrink: 0;
+            width: 32px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .timeline-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            z-index: 2;
+            box-shadow: 0 2px 8px rgba(30, 58, 138, 0.15);
+        }
+
+        .timeline-card {
+            flex-grow: 1;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+        }
+
+            .timeline-card:hover {
+                box-shadow: 0 4px 16px rgba(30, 58, 138, 0.08);
+                border-color: #cbd5e1;
+            }
+
+        .timeline-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .badge-type {
+            display: inline-block;
+            padding: 0.3rem 0.7rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-right: 0.5rem;
+        }
+
+        .timeline-date {
+            font-size: 0.82rem;
+            color: #64748b;
+        }
+
+        /* Lab values */
+        .lab-values {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .lab-value-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+        }
+
+            .lab-value-row:last-child {
+                border-bottom: none;
+            }
+
+        /* Info boxes for diagnóstico */
+        .info-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .info-box-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        /* Info pills */
+        .info-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            color: #475569;
+        }
+
+            .info-pill i {
+                color: #1e3a8a;
+            }
+
+        /* Estado vacío */
+        .empty-state-container {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-state-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 4px 16px rgba(30, 58, 138, 0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: #1e3a8a;
+            font-size: 1.8rem;
+        }
+
+        /* Botón flotante */
+        .btn-floating-refresh {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #1e3a8a;
+            color: white;
+            border: none;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px rgba(30, 58, 138, 0.4);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            z-index: 1000;
+        }
+
+            .btn-floating-refresh:hover {
+                background: #1e40af;
+                transform: scale(1.1);
+            }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .timeline-wrapper {
+                padding-left: 20px;
+            }
+
+                .timeline-wrapper::before {
+                    left: 34px;
+                }
+
+            .timeline-card {
+                padding: 1.25rem;
+            }
+        }
+    </style>
+}

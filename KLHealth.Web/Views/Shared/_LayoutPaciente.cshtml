@@ -1,0 +1,195 @@
+﻿@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString().ToLower();
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString().ToLower();
+    var userName = User.Identity?.Name ?? "Usuario";
+
+    // CORRECCIÓN: Manejar casos donde userName está vacío o tiene solo espacios
+    var userInitial = "U"; // Valor por defecto
+    if (!string.IsNullOrWhiteSpace(userName))
+    {
+        var names = userName.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        if (names.Length > 0)
+        {
+            userInitial = names.Take(2)
+                .Aggregate("", (a, c) => a + (c.Length > 0 ? c[0].ToString() : ""))
+                .ToUpper();
+        }
+    }
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - K & L Health</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site-layouts.css" />
+    
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <i class="bi bi-briefcase-medical-fill"></i>
+                </div>
+                <div class="sidebar-brand">
+                    <span class="sidebar-brand-name">K & L Health</span>
+                    <span class="sidebar-brand-sub">Portal del Paciente</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul class="sidebar-menu">
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("Dashboard", "Paciente")" class="sidebar-link @(currentController == "paciente" && currentAction == "dashboard" ? "active" : "")">
+                            <i class="bi bi-grid"></i>
+                            <span>Inicio</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("Index", "Citas")" class="sidebar-link @(currentController == "citas" ? "active" : "")">
+                            <i class="bi bi-calendar-event"></i>
+                            <span>Mis citas</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("Agendar", "Citas")" class="sidebar-link @(currentController == "citas" && currentAction == "agendar" ? "active" : "")">
+                            <i class="bi bi-calendar-plus"></i>
+                            <span>Agendar cita</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("Index", "Doctores")" class="sidebar-link @(currentController == "doctores" ? "active" : "")">
+                            <i class="bi bi-people"></i>
+                            <span>Doctores disponibles</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("Index", "Especialidades")" class="sidebar-link @(currentController == "especialidades" ? "active" : "")">
+                            <i class="bi bi-heart-pulse"></i>
+                            <span>Especialidades médicas</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("Index", "Resultados")" class="sidebar-link @(currentController == "resultados" ? "active" : "")">
+                            <i class="bi bi-file-earmark-medical"></i>
+                            <span>Resultados médicos</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("Index", "HistorialMedico")" class="sidebar-link @(currentController == "historialmedico" ? "active" : "")">
+                            <i class="bi bi-clock-history"></i>
+                            <span>Historial médico</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("Index", "Hospital")" class="sidebar-link @(currentController == "hospital" ? "active" : "")">
+                            <i class="bi bi-building"></i>
+                            <span>Información del hospital</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="sidebar-divider"></div>
+
+                <ul class="sidebar-menu">
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("Index", "Notificaciones")" class="sidebar-link @(currentController == "notificaciones" ? "active" : "")">
+                            <i class="bi bi-bell"></i>
+                            <span>Notificaciones</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("Index", "Perfil")" class="sidebar-link @(currentController == "perfil" ? "active" : "")">
+                            <i class="bi bi-person"></i>
+                            <span>Mi perfil</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="@Url.Action("Index", "Configuracion")" class="sidebar-link @(currentController == "configuracion" ? "active" : "")">
+                            <i class="bi bi-gear"></i>
+                            <span>Configuración</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-logout">
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    <button type="submit" class="sidebar-link" style="width: 100%; border: none; background: none; cursor: pointer;">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Cerrar sesión</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <div class="main-content">
+            <!-- NAVBAR -->
+            <header class="navbar-top">
+                <button class="sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+
+                <div class="navbar-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" placeholder="Buscar citas, resultados o doctores..." />
+                </div>
+
+                <div class="navbar-actions">
+                    <button class="navbar-icon-btn" title="Notificaciones">
+                        <i class="bi bi-bell"></i>
+                        <span class="navbar-badge"></span>
+                    </button>
+
+                    <div class="navbar-user">
+                        <div class="navbar-user-info">
+                            <span class="navbar-user-name">@userName</span>
+                            <span class="navbar-user-role">ID de Paciente: KL-8829</span>
+                        </div>
+                        <div class="navbar-user-avatar">@userInitial</div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- CONTENIDO DE LA PÁGINA -->
+            <main class="page-content">
+                @RenderBody()
+            </main>
+
+            <!-- FOOTER -->
+            <footer class="app-footer">
+                <div class="container-fluid px-0">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <span class="text-muted" style="font-size: 0.8rem;">© 2026 K & L Health. Precisión Clínica y Minimalismo Empático.</span>
+                        </div>
+                        <div class="col-md-6 text-md-end mt-2 mt-md-0">
+                            <a href="#" class="text-muted me-3 text-decoration-none" style="font-size: 0.8rem;">Política de Privacidad</a>
+                            <a href="#" class="text-muted me-3 text-decoration-none" style="font-size: 0.8rem;">Términos de Servicio</a>
+                            <a href="#" class="text-muted text-decoration-none" style="font-size: 0.8rem;">Soporte</a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

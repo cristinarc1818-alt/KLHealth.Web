@@ -1,0 +1,140 @@
+﻿@model List<KLHealth.Web.Models.ViewModels.EspecialidadListaViewModel>
+@{
+    Layout = "_LayoutPaciente";
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <div class="text-uppercase fw-bold mb-2" style="font-size: 0.75rem; letter-spacing: 1px; color: #1e3a8a;">
+        <i class="bi bi-grid-3x3-gap-fill me-1"></i>DEPARTAMENTOS
+    </div>
+    <h1 class="fw-bold mb-3" style="font-size: 2rem; color: #0f172a; letter-spacing: -0.5px;">Especialidades Médicas</h1>
+    <p class="text-muted mb-0" style="font-size: 1rem; line-height: 1.6; max-width: 800px;">
+        Explore nuestros departamentos especializados y encuentre la atención adecuada para sus necesidades.
+        Cada clínica en K & L Health cuenta con profesionales certificados comprometidos con una recuperación empática y basada en evidencia.
+    </p>
+</div>
+
+<!-- Grid de Especialidades -->
+@if (Model != null && Model.Any())
+{
+    <div class="row g-4 mb-5">
+        @foreach (var esp in Model)
+        {
+            <div class="col-md-6 col-lg-4 col-xl-3">
+                <div class="card especialidad-card border-0 h-100">
+                    <div class="card-body p-4">
+                        <!-- Icono -->
+                        <div class="mb-3">
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
+                                 style="width: 56px; height: 56px; background: #dbeafe; color: #1e3a8a;">
+                                <i class="bi @esp.Icono" style="font-size: 1.5rem;"></i>
+                            </div>
+                        </div>
+
+                        <!-- Nombre y descripción -->
+                        <h5 class="fw-bold mb-2" style="font-size: 1.15rem; color: #0f172a;">@esp.Nombre</h5>
+                        <p class="text-muted mb-4" style="font-size: 0.88rem; line-height: 1.5; min-height: 42px;">
+                            @(esp.Descripcion ?? "Atención médica especializada.")
+                        </p>
+
+                        <!-- Contador y botón -->
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            <div class="small text-muted">
+                                <strong style="color: #0f172a;">@esp.TotalDoctores</strong> Doctor@(esp.TotalDoctores != 1 ? "es" : "")
+                            </div>
+                            <a href="@Url.Action("Index", "Doctores", new { especialidad = esp.Nombre })"
+                               class="btn btn-sm btn-outline-primary"
+                               style="border-color: #1e3a8a; color: #1e3a8a; border-radius: 8px; font-weight: 500;">
+                                Ver Doctores <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="empty-state-container mb-5">
+        <div class="empty-state-icon">
+            <i class="bi bi-grid-3x3-gap"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-2">No hay especialidades registradas</h4>
+        <p class="text-muted mb-0" style="font-size: 0.95rem;">
+            Las especialidades médicas aparecerán aquí una vez que sean configuradas por el administrador.
+        </p>
+    </div>
+}
+
+<!-- Banner Inferior de Soporte -->
+<div class="card border-0 overflow-hidden" style="background: #1e3a8a; border-radius: 16px;">
+    <div class="card-body p-5 position-relative">
+        <!-- Icono decorativo de fondo -->
+        <i class="bi bi-headset position-absolute end-0 bottom-0 me-4 mb-n3"
+           style="font-size: 12rem; opacity: 0.08; color: white; transform: translateY(30%);"></i>
+
+        <div class="position-relative" style="z-index: 2;">
+            <h3 class="fw-bold mb-3" style="color: white; font-size: 1.75rem;">¿No encuentras lo que buscas?</h3>
+            <p class="mb-4" style="color: rgba(255,255,255,0.9); font-size: 1rem; line-height: 1.6; max-width: 600px;">
+                Nuestra mesa de ayuda está disponible 24/7 para guiarlo hacia el profesional médico adecuado según sus síntomas e historial de salud.
+            </p>
+            <div class="d-flex gap-3 flex-wrap">
+                <a href="@Url.Action("Index", "Notificaciones")" class="btn px-4 py-2"
+                   style="background: white; color: #1e3a8a; border-radius: 10px; font-weight: 600; text-decoration: none;">
+                    <i class="bi bi-chat-dots me-2"></i>Contactar Soporte
+                </a>
+                <a href="#" class="btn px-4 py-2"
+                   style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; font-weight: 500; text-decoration: none;">
+                    <i class="bi bi-book me-2"></i>Leer Guías de Salud
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .especialidad-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            transition: all 0.25s ease;
+        }
+
+            .especialidad-card:hover {
+                box-shadow: 0 8px 24px rgba(30, 58, 138, 0.1);
+                transform: translateY(-4px);
+                border-color: #cbd5e1;
+            }
+
+        .empty-state-container {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-state-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 4px 16px rgba(30, 58, 138, 0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: #1e3a8a;
+            font-size: 1.8rem;
+        }
+
+        @@media (max-width: 768px) {
+            .especialidad-card .card-body {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+}

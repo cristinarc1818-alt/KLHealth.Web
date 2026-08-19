@@ -1,0 +1,244 @@
+﻿@model KLHealth.Web.Models.ViewModels.ConfiguracionViewModel
+@{
+    Layout = "_LayoutPaciente";
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h1 class="fw-bold mb-1" style="font-size: 2rem; color: #0f172a; letter-spacing: -0.5px;">Configuración</h1>
+    <p class="text-muted mb-0" style="font-size: 0.95rem;">Administre sus preferencias de cuenta, configuración de privacidad y experiencia en el portal.</p>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success border-0 shadow-sm mb-4 d-flex align-items-center gap-2" style="border-radius: 10px; font-size: 0.9rem; background: #f0fdf4; color: #166534;">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
+
+<form asp-action="ActualizarPreferencias" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="row g-4">
+        <!-- Columna Izquierda -->
+        <div class="col-lg-8">
+            <!-- Sección: Cuenta -->
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 14px;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <h4 class="fw-bold mb-1" style="color: #0f172a;">
+                                <i class="bi bi-person-circle me-2" style="color: #1e3a8a;"></i>Cuenta
+                            </h4>
+                        </div>
+                        <a href="@Url.Action("Index", "Perfil")" class="btn btn-sm px-3 py-2" style="background: #1e3a8a; color: white; border-radius: 8px; font-size: 0.85rem; text-decoration: none;">
+                            <i class="bi bi-pencil me-1"></i>Editar Perfil
+                        </a>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                Nombre Completo
+                            </label>
+                            <div class="form-control-plaintext fw-semibold px-3 py-2" style="background: #f8fafc; border-radius: 8px; color: #0f172a;">
+                                @Model.NombreCompleto
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                Dirección de Correo
+                            </label>
+                            <div class="form-control-plaintext fw-semibold px-3 py-2" style="background: #f8fafc; border-radius: 8px; color: #0f172a;">
+                                @Model.Email
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                ID del Paciente
+                            </label>
+                            <div class="form-control-plaintext fw-semibold px-3 py-2" style="background: #f8fafc; border-radius: 8px; color: #0f172a;">
+                                @(Model.NumeroIdentificacion ?? "N/A")
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                Teléfono
+                            </label>
+                            <div class="form-control-plaintext fw-semibold px-3 py-2" style="background: #f8fafc; border-radius: 8px; color: #0f172a;">
+                                @(Model.Telefono ?? "No registrado")
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3" style="border-top: 1px solid #e2e8f0;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-semibold" style="color: #0f172a;">Contraseña</div>
+                                <div class="small text-muted">@Model.UltimaActualizacionPassword</div>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary px-3 py-2" style="border-radius: 8px; font-size: 0.85rem;">
+                                Cambiar Contraseña
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección: Seguridad -->
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 14px;">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold mb-4" style="color: #0f172a;">
+                        <i class="bi bi-shield-lock me-2" style="color: #1e3a8a;"></i>Seguridad
+                    </h4>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom: 1px solid #e2e8f0;">
+                        <div>
+                            <div class="fw-semibold" style="color: #0f172a;">Autenticación de Dos Factores</div>
+                            <div class="small text-muted">Inicio de sesión seguro vía SMS/Email</div>
+                        </div>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" asp-for="AutenticacionDosFactores" style="width: 3rem; height: 1.5rem;">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-semibold" style="color: #0f172a;">Ver Historial de Sesiones</div>
+                        </div>
+                        <button type="button" class="btn btn-link text-decoration-none" style="color: #1e3a8a; font-size: 0.9rem;">
+                            Ver <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección: Privacidad -->
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 14px;">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold mb-4" style="color: #0f172a;">
+                        <i class="bi bi-shield-check me-2" style="color: #1e3a8a;"></i>Privacidad
+                    </h4>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom: 1px solid #e2e8f0;">
+                        <div>
+                            <div class="fw-semibold" style="color: #0f172a;">Compartir Datos</div>
+                            <div class="small text-muted">Permitir datos de laboratorio para investigación</div>
+                        </div>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" asp-for="CompartirDatos" style="width: 3rem; height: 1.5rem;">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-semibold" style="color: #0f172a;">Visibilidad del Perfil</div>
+                        </div>
+                        <button type="button" class="btn btn-link text-decoration-none" style="color: #1e3a8a; font-size: 0.9rem;">
+                            Configurar <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha -->
+        <div class="col-lg-4">
+            <!-- Sección: Notificaciones -->
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 14px;">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold mb-4" style="color: #0f172a;">
+                        <i class="bi bi-bell me-2" style="color: #1e3a8a;"></i>Notificaciones
+                    </h4>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom: 1px solid #e2e8f0;">
+                        <div>
+                            <i class="bi bi-envelope me-2" style="color: #64748b;"></i>
+                            <span class="fw-semibold" style="color: #0f172a;">Notificaciones por Correo</span>
+                        </div>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" asp-for="NotificacionesCorreo" style="width: 3rem; height: 1.5rem;">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-chat-dots me-2" style="color: #64748b;"></i>
+                            <span class="fw-semibold" style="color: #0f172a;">Recordatorios por SMS</span>
+                        </div>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" asp-for="RecordatoriosSMS" style="width: 3rem; height: 1.5rem;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección: Apariencia -->
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 14px;">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold mb-4" style="color: #0f172a;">
+                        <i class="bi bi-palette me-2" style="color: #1e3a8a;"></i>Apariencia
+                    </h4>
+
+                    <div class="mb-3">
+                        <label class="form-label small text-muted fw-bold" style="font-size: 0.75rem;">Idioma del Portal</label>
+                        <select class="form-select" style="border-radius: 8px; border-color: #e2e8f0;">
+                            <option selected>Español (Latinoamérica)</option>
+                            <option>English (US)</option>
+                            <option>Português (Brasil)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="form-label small text-muted fw-bold mb-2" style="font-size: 0.75rem;">Tema</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <button type="button" class="btn w-100 py-3" style="background: white; border: 2px solid #1e3a8a; border-radius: 8px; color: #1e3a8a;">
+                                    <i class="bi bi-sun d-block mb-1" style="font-size: 1.3rem;"></i>
+                                    <small class="fw-semibold">Claro</small>
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button type="button" class="btn w-100 py-3" style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px; color: #64748b;">
+                                    <i class="bi bi-moon d-block mb-1" style="font-size: 1.3rem;"></i>
+                                    <small class="fw-semibold">Oscuro</small>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botón Guardar -->
+            <button type="submit" class="btn w-100 py-3" style="background: #1e3a8a; color: white; border-radius: 10px; font-weight: 600; font-size: 0.95rem;">
+                <i class="bi bi-check-circle me-2"></i>Guardar Cambios
+            </button>
+        </div>
+    </div>
+</form>
+
+<!-- Sección: Desactivar Cuenta (Zona de Peligro) -->
+<div class="card border-0 shadow-sm mt-4" style="border-radius: 14px; background: #fef2f2; border: 1px solid #fee2e2;">
+    <div class="card-body p-4">
+        <div class="d-flex align-items-start gap-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width: 48px; height: 48px; background: #fee2e2; color: #dc2626;">
+                <i class="bi bi-exclamation-triangle-fill" style="font-size: 1.3rem;"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h5 class="fw-bold mb-2" style="color: #dc2626;">Desactivar Cuenta</h5>
+                <p class="mb-3 small" style="color: #7f1d1d; line-height: 1.5;">
+                    Eliminar permanentemente su historial clínico y acceso al portal. Esta acción no se puede deshacer.
+                </p>
+                <button type="button" class="btn px-4 py-2" style="background: white; color: #dc2626; border: 1px solid #dc2626; border-radius: 8px; font-weight: 600;"
+                        onclick="return confirm('¿Está seguro de que desea desactivar su cuenta? Esta acción es permanente.');">
+                    Desactivar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,160 @@
+﻿@model KLHealth.Web.Models.Entities.Cita
+@{
+    Layout = "_LayoutPaciente";
+
+    // Misma corrección de título que en la vista de lista
+    var nombreMedico = Model.Medico?.Usuario?.NombreCompleto?.Trim() ?? "";
+    var tituloMedico = Model.Medico?.Titulo?.Trim() ?? "";
+
+    nombreMedico = nombreMedico
+        .Replace("Dr. ", "", StringComparison.OrdinalIgnoreCase)
+        .Replace("Dra. ", "", StringComparison.OrdinalIgnoreCase)
+        .Replace("Dr ", "", StringComparison.OrdinalIgnoreCase)
+        .Replace("Dra ", "", StringComparison.OrdinalIgnoreCase)
+        .Trim();
+
+    tituloMedico = tituloMedico
+        .Replace("Dr. Dr.", "Dr.", StringComparison.OrdinalIgnoreCase)
+        .Replace("Dra. Dra.", "Dra.", StringComparison.OrdinalIgnoreCase)
+        .Trim();
+
+    var nombreMedicoMostrar = string.IsNullOrWhiteSpace(tituloMedico)
+        ? nombreMedico
+        : $"{tituloMedico} {nombreMedico}".Trim();
+}
+
+<div class="mb-4">
+    <h1 class="fw-bold text-dark mb-1" style="font-size: 1.75rem; letter-spacing: -0.5px;">Detalles de la Cita</h1>
+    <p class="text-muted mb-0" style="font-size: 0.9rem;">Información completa de tu cita médica.</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4 appointment-card">
+            <div class="card-header border-0 py-3 px-4" style="background: var(--blue-900);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-semibold text-white" style="font-size: 1rem;">Información de la Cita</h5>
+                    <span class="badge bg-white text-primary px-3 py-2 rounded-pill" style="font-size: 0.8rem; font-weight: 600;">@Model.Estado</span>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="row align-items-center mb-4">
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <img src="@(Model.Medico?.FotoPerfilUrl ?? "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&h=200&fit=crop&crop=face")"
+                             alt="@nombreMedicoMostrar"
+                             class="img-fluid rounded-3"
+                             style="object-fit: cover; height: 140px; width: 100%; border: 3px solid var(--blue-50);">
+                    </div>
+
+                    <div class="col-md-9">
+                        <h4 class="fw-bold text-dark mb-1" style="font-size: 1.25rem;">@nombreMedicoMostrar</h4>
+                        <p class="fw-semibold mb-2" style="font-size: 0.9rem; color: var(--blue-700);">
+                            Especialista en @Model.Medico?.Especialidad?.Nombre
+                        </p>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">
+                            <i class="bi bi-geo-alt me-1"></i>@Model.Sala
+                        </p>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="p-3 rounded-3" style="background: var(--blue-50);">
+                            <div class="text-muted small mb-1" style="font-size: 0.75rem;">
+                                <i class="bi bi-calendar3 me-1"></i>Fecha
+                            </div>
+                            <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                @Model.FechaHoraInicio.ToString("dd MMM yyyy")
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="p-3 rounded-3" style="background: var(--blue-50);">
+                            <div class="text-muted small mb-1" style="font-size: 0.75rem;">
+                                <i class="bi bi-clock me-1"></i>Hora
+                            </div>
+                            <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                @Model.FechaHoraInicio.ToString("hh:mm tt")
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="p-3 rounded-3" style="background: var(--blue-50);">
+                            <div class="text-muted small mb-1" style="font-size: 0.75rem;">
+                                <i class="bi bi-camera-video me-1"></i>Modalidad
+                            </div>
+                            <div class="fw-bold text-dark" style="font-size: 0.95rem;">@Model.Tipo</div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Motivo))
+                {
+                    <div class="mb-4">
+                        <h6 class="fw-semibold text-dark mb-2" style="font-size: 0.9rem;">
+                            <i class="bi bi-file-text me-1"></i>Motivo de la Consulta
+                        </h6>
+                        <p class="text-muted mb-0" style="font-size: 0.9rem; line-height: 1.6;">@Model.Motivo</p>
+                    </div>
+                }
+
+                <div class="d-flex gap-2 flex-wrap">
+                    @if (Model.Estado != "Cancelada" && Model.Estado != "Completada" && Model.FechaHoraInicio > DateTime.Now)
+                    {
+                        <a href="@Url.Action("Reprogramar", "Citas", new { id = Model.Id })"
+                           class="btn btn-outline-secondary px-4 py-2"
+                           style="border-radius: 8px; font-size: 0.9rem;">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Reprogramar
+                        </a>
+
+                        <form method="post"
+                              action="@Url.Action("Cancelar", "Citas", new { id = Model.Id })"
+                              class="d-inline"
+                              onsubmit="return confirm('¿Estás seguro de cancelar esta cita?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit"
+                                    class="btn btn-outline-danger px-4 py-2"
+                                    style="border-radius: 8px; font-size: 0.9rem;">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar Cita
+                            </button>
+                        </form>
+                    }
+
+                    <a href="@Url.Action("Index", "Citas")"
+                       class="btn btn-outline-primary px-4 py-2"
+                       style="border-radius: 8px; font-size: 0.9rem;">
+                        <i class="bi bi-arrow-left me-2"></i>Volver a Mis Citas
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm" style="background: var(--blue-lavender);">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3" style="font-size: 1rem; color: var(--blue-900);">
+                    <i class="bi bi-info-circle me-2"></i>Información del Paciente
+                </h5>
+
+                <div class="mb-3">
+                    <div class="text-muted small mb-1" style="font-size: 0.75rem;">Nombre</div>
+                    <div class="fw-semibold text-dark" style="font-size: 0.9rem;">@Model.Paciente?.Usuario?.NombreCompleto</div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="text-muted small mb-1" style="font-size: 0.75rem;">ID de Paciente</div>
+                    <div class="fw-semibold text-dark" style="font-size: 0.9rem;">#@Model.Paciente?.NumeroIdentificacion</div>
+                </div>
+
+                <div>
+                    <div class="text-muted small mb-1" style="font-size: 0.75rem;">Tipo de Sangre</div>
+                    <div class="fw-semibold text-dark" style="font-size: 0.9rem;">@Model.Paciente?.TipoSangre?.Tipo</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

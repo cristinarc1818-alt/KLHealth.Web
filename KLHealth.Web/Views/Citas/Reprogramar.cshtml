@@ -1,0 +1,190 @@
+﻿@model KLHealth.Web.Models.ViewModels.CitaViewModel
+@{
+    Layout = "_LayoutPaciente";
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h1 class="fw-bold mb-1" style="font-size: 1.75rem; color: #0f172a; letter-spacing: -0.5px;">Reprogramar Cita</h1>
+    <p class="text-muted mb-0" style="font-size: 0.95rem;">Modifica la fecha, hora o médico de tu cita.</p>
+</div>
+
+<form asp-action="Reprogramar" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Paso 1: Seleccionar Médico -->
+            <div class="card border-0 mb-4 step-card">
+                <div class="card-body p-4">
+                    <div class="step-header mb-3">
+                        <div class="step-number">1</div>
+                        <h5 class="fw-bold mb-0" style="font-size: 1rem; color: #0f172a;">SELECCIONAR MÉDICO</h5>
+                    </div>
+
+                    <div class="mb-0">
+                        <select asp-for="MedicoId" class="form-select form-select-lg" style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.9rem 1.2rem; font-size: 0.95rem; background: #f8fafc;">
+                            <option value="">-- Seleccione un médico --</option>
+                            @foreach (var medico in Model.MedicosDisponibles)
+                            {
+                                <option value="@medico.Id">@medico.NombreCompleto - @medico.Especialidad</option>
+                            }
+                        </select>
+                        <span asp-validation-for="MedicoId" class="text-danger small mt-2"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paso 2: Nueva Fecha y Hora -->
+            <div class="card border-0 mb-4 step-card">
+                <div class="card-body p-4">
+                    <div class="step-header mb-3">
+                        <div class="step-number">2</div>
+                        <h5 class="fw-bold mb-0" style="font-size: 1rem; color: #0f172a;">NUEVA FECHA Y HORA</h5>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="FechaHoraInicio" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                <i class="bi bi-calendar-event me-1"></i>Fecha y Hora
+                            </label>
+                            <input asp-for="FechaHoraInicio" type="datetime-local" class="form-control"
+                                   style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem; font-size: 0.9rem;" />
+                            <span asp-validation-for="FechaHoraInicio" class="text-danger small mt-2"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Tipo" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                <i class="bi bi-camera-video me-1"></i>Modalidad
+                            </label>
+                            <select asp-for="Tipo" class="form-select" style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem; font-size: 0.9rem;">
+                                <option value="Presencial">Presencial</option>
+                                <option value="Virtual">Virtual (Videollamada)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paso 3: Ubicación y Motivo -->
+            <div class="card border-0 mb-4 step-card">
+                <div class="card-body p-4">
+                    <div class="step-header mb-3">
+                        <div class="step-number">3</div>
+                        <h5 class="fw-bold mb-0" style="font-size: 1rem; color: #0f172a;">DETALLES ADICIONALES</h5>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Sala" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                            <i class="bi bi-geo-alt me-1"></i>Ubicación/Sala
+                        </label>
+                        <input asp-for="Sala" class="form-control" placeholder="Ej: Consultorio 402"
+                               style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem; font-size: 0.9rem;" />
+                    </div>
+
+                    <div class="mb-0">
+                        <label asp-for="Motivo" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                            <i class="bi bi-file-text me-1"></i>Motivo de la Consulta
+                        </label>
+                        <textarea asp-for="Motivo" class="form-control" rows="4"
+                                  placeholder="Describe brevemente el motivo de tu consulta..."
+                                  style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.9rem 1rem; font-size: 0.9rem; resize: none;"></textarea>
+                        <span asp-validation-for="Motivo" class="text-danger small mt-2"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="d-flex gap-3 mb-5">
+                <button type="submit" class="btn btn-primary px-5 py-3" style="background: #1e3a8a; border-color: #1e3a8a; border-radius: 10px; font-size: 0.95rem; font-weight: 600;">
+                    <i class="bi bi-check-circle me-2"></i>Guardar Cambios
+                </button>
+                <a href="@Url.Action("Index", "Citas")" class="btn btn-outline-secondary px-4 py-3" style="border-radius: 10px; font-size: 0.95rem;">
+                    <i class="bi bi-x-circle me-2"></i>Cancelar
+                </a>
+            </div>
+        </div>
+
+        <!-- Panel lateral derecho -->
+        <div class="col-lg-4">
+            <div class="card border-0 mb-3" style="background: #fef3c7; border-radius: 12px; border-left: 4px solid #f59e0b;">
+                <div class="card-body p-4">
+                    <div class="d-flex gap-3">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-exclamation-triangle-fill" style="color: #f59e0b; font-size: 1.5rem;"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-2" style="font-size: 0.9rem; color: #92400e;">Nota Importante</h6>
+                            <p class="mb-0 small" style="font-size: 0.82rem; color: #78350f; line-height: 1.6;">
+                                Al reprogramar tu cita, el estado cambiará a "Pendiente" y deberá ser confirmada nuevamente por el médico.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0" style="background: #eff6ff; border-radius: 12px; border-left: 4px solid #1e3a8a;">
+                <div class="card-body p-4">
+                    <div class="d-flex gap-3">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-info-circle-fill" style="color: #1e3a8a; font-size: 1.5rem;"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-2" style="font-size: 0.9rem; color: #1e3a8a;">Política de Reprogramación</h6>
+                            <p class="mb-0 small" style="font-size: 0.82rem; color: #475569; line-height: 1.6;">
+                                Puedes reprogramar sin costo hasta 24 horas antes. Si es una emergencia médica, contáctanos inmediatamente.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+@section Styles {
+    <style>
+        /* Step cards */
+        .step-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+            .step-card:hover {
+                box-shadow: 0 4px 12px rgba(30, 58, 138, 0.06);
+            }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #dbeafe;
+            color: #1e3a8a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .step-card .card-body {
+                padding: 1.25rem;
+            }
+        }
+    </style>
+}

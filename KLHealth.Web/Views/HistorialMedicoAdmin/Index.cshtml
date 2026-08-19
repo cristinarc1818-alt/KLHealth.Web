@@ -1,0 +1,535 @@
+﻿```cshtml
+@model KLHealth.Web.Models.ViewModels.HistorialMedicoViewModel
+@{
+    Layout = "_LayoutAdmin";
+    var cultura = new System.Globalization.CultureInfo("es-ES");
+}
+
+<div class="mb-4">
+    <h1 class="fw-bold mb-1" style="font-size: 1.75rem; color: var(--blue-700);">
+        Historias Clínicas
+    </h1>
+    <p class="text-muted mb-0">
+        Visualización del historial médico completo de pacientes.
+    </p>
+</div>
+
+<!-- Selector de Paciente -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 14px;">
+    <div class="card-body p-4">
+
+        <form asp-action="Index" method="get">
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-md-8">
+
+                    <label class="form-label fw-semibold">
+                        Seleccionar Paciente
+                    </label>
+
+                    <select name="pacienteId"
+                            class="form-select"
+                            style="border-radius: 8px;">
+
+                        <option value="">
+                            -- Seleccione un paciente --
+                        </option>
+
+                        @foreach (var paciente in Model.PacientesDisponibles)
+                        {
+                            <option value="@paciente.Id"
+                                    selected="@(Model.PacienteSeleccionadoId == paciente.Id)">
+                                @paciente.NombreCompleto (@paciente.NumeroIdentificacion)
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <button type="submit"
+                            class="btn btn-primary w-100"
+                            style="background: var(--blue-900); border-radius: 8px;">
+
+                        <i class="bi bi-search me-2"></i>
+                        Ver Historial
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+
+@if (Model.Paciente != null)
+{
+    <div class="row g-4">
+
+        <!-- ============================================================
+             COLUMNA IZQUIERDA: INFORMACIÓN DEL PACIENTE
+             ============================================================ -->
+
+        <div class="col-lg-4">
+
+            <div class="card border-0 shadow-sm"
+                 style="border-radius: 14px;">
+
+                <div class="card-body p-4 text-center">
+
+                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                         style="width: 100px; height: 100px; background: #dbeafe; color: var(--blue-700);">
+
+                        <i class="bi bi-person"
+                           style="font-size: 3rem;"></i>
+
+                    </div>
+
+                    <h4 class="fw-bold mb-1"
+                        style="color: #0f172a;">
+
+                        @Model.Paciente.Usuario.NombreCompleto
+
+                    </h4>
+
+                    <p class="text-muted small mb-3">
+                        ID: @Model.Paciente.NumeroIdentificacion
+                    </p>
+
+
+                    <div class="text-start mt-4">
+
+                        <div class="mb-3">
+                            <small class="text-muted d-block">
+                                Email
+                            </small>
+
+                            <span class="fw-semibold small">
+                                @Model.Paciente.Usuario.Email
+                            </span>
+                        </div>
+
+
+                        <div class="mb-3">
+                            <small class="text-muted d-block">
+                                Teléfono
+                            </small>
+
+                            <span class="fw-semibold small">
+                                @(string.IsNullOrEmpty(Model.Paciente.Usuario.Telefono)
+                                    ? "No registrado"
+                                    : Model.Paciente.Usuario.Telefono)
+                            </span>
+                        </div>
+
+
+                        <div class="mb-3">
+
+                            <small class="text-muted d-block">
+                                Fecha de Nacimiento
+                            </small>
+
+                            <span class="fw-semibold small">
+
+                                @(Model.Paciente.FechaNacimiento != null &&
+                                  Model.Paciente.FechaNacimiento.Year > 1900
+                                    ? Model.Paciente.FechaNacimiento.ToString("dd MMM yyyy")
+                                    : "No registrada")
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            @*
+            <!-- Alergias -->
+
+            @if (Model.Alergias != null && Model.Alergias.Any())
+            {
+                <div class="card border-0 shadow-sm mt-4"
+                     style="border-radius: 14px; border-left: 4px solid #dc2626;">
+
+                    <div class="card-body p-4">
+
+                        <h5 class="fw-bold mb-3"
+                            style="color: #dc2626;">
+
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Alergias
+
+                        </h5>
+
+                        <ul class="mb-0 small">
+
+                            @foreach (var alergia in Model.Alergias)
+                            {
+                                <li class="mb-2">
+
+                                    <span class="fw-semibold">
+                                        @alergia.Nombre
+                                    </span>
+
+                                    @if (!string.IsNullOrEmpty(alergia.Severidad))
+                                    {
+                                        <span class="badge bg-danger ms-2">
+                                            @alergia.Severidad
+                                        </span>
+                                    }
+
+                                </li>
+                            }
+
+                        </ul>
+
+                    </div>
+
+                </div>
+            }
+            *@
+
+        </div>
+
+
+        <!-- ============================================================
+             COLUMNA DERECHA: HISTORIAL MÉDICO
+             ============================================================ -->
+
+        <div class="col-lg-8">
+
+
+            <!-- ========================================================
+                 CITAS RECIENTES
+                 ======================================================== -->
+
+            <div class="card border-0 shadow-sm mb-4"
+                 style="border-radius: 14px;">
+
+                <div class="card-header border-0 py-3 px-4"
+                     style="background: #f8fafc;">
+
+                    <h5 class="fw-bold mb-0"
+                        style="color: #0f172a;">
+
+                        <i class="bi bi-calendar-event me-2"
+                           style="color: var(--blue-700);"></i>
+
+                        Últimas Citas
+
+                    </h5>
+
+                </div>
+
+
+                <div class="card-body p-0">
+
+                    @if (Model.Citas.Any())
+                    {
+                        <div class="list-group list-group-flush">
+
+                            @foreach (var cita in Model.Citas)
+                            {
+                                // ====================================================
+                                // LIMPIAR NOMBRE DEL MÉDICO
+                                // ====================================================
+
+                                string nombreMedico =
+                                    cita.Medico?.Usuario?.NombreCompleto?.Trim() ?? "";
+
+                                string tituloMedico =
+                                    cita.Medico?.Titulo?.Trim() ?? "";
+
+
+                                // Quitar títulos que ya estén dentro del nombre
+                                while (
+                                    nombreMedico.StartsWith("Dr.", StringComparison.OrdinalIgnoreCase) ||
+                                    nombreMedico.StartsWith("Dra.", StringComparison.OrdinalIgnoreCase) ||
+                                    nombreMedico.StartsWith("Dr ", StringComparison.OrdinalIgnoreCase) ||
+                                    nombreMedico.StartsWith("Dra ", StringComparison.OrdinalIgnoreCase) ||
+                                    nombreMedico.StartsWith("Doctor ", StringComparison.OrdinalIgnoreCase) ||
+                                    nombreMedico.StartsWith("Doctora ", StringComparison.OrdinalIgnoreCase)
+                                )
+                                {
+                                    if (nombreMedico.StartsWith("Dra.", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        nombreMedico =
+                                            nombreMedico.Substring(4).Trim();
+                                    }
+                                    else if (nombreMedico.StartsWith("Dr.", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        nombreMedico =
+                                            nombreMedico.Substring(3).Trim();
+                                    }
+                                    else if (nombreMedico.StartsWith("Dra ", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        nombreMedico =
+                                            nombreMedico.Substring(4).Trim();
+                                    }
+                                    else if (nombreMedico.StartsWith("Dr ", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        nombreMedico =
+                                            nombreMedico.Substring(3).Trim();
+                                    }
+                                    else if (nombreMedico.StartsWith("Doctora ", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        nombreMedico =
+                                            nombreMedico.Substring(8).Trim();
+                                    }
+                                    else if (nombreMedico.StartsWith("Doctor ", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        nombreMedico =
+                                            nombreMedico.Substring(7).Trim();
+                                    }
+                                }
+
+
+                                // Normalizar título
+                                if (tituloMedico.Contains(
+                                        "Dra",
+                                        StringComparison.OrdinalIgnoreCase) ||
+                                    tituloMedico.Contains(
+                                        "Doctora",
+                                        StringComparison.OrdinalIgnoreCase))
+                                {
+                                    tituloMedico = "Dra.";
+                                }
+                                else if (
+                                    tituloMedico.Contains(
+                                        "Dr",
+                                        StringComparison.OrdinalIgnoreCase) ||
+                                    tituloMedico.Contains(
+                                        "Doctor",
+                                        StringComparison.OrdinalIgnoreCase))
+                                {
+                                    tituloMedico = "Dr.";
+                                }
+                                else
+                                {
+                                    tituloMedico = "";
+                                }
+
+
+                                <div class="list-group-item border-0 p-3 border-bottom">
+
+                                    <div class="d-flex justify-content-between align-items-start">
+
+                                        <div>
+
+                                            <!-- NOMBRE DEL MÉDICO -->
+                                            <h6 class="fw-bold mb-1">
+
+                                                @if (!string.IsNullOrEmpty(tituloMedico))
+                                                {
+                                                    @tituloMedico
+                                                    @:&nbsp;
+                                                }
+
+                                                @nombreMedico
+
+                                            </h6>
+
+
+                                            <!-- FECHA Y HORA -->
+                                            <p class="small text-muted mb-1">
+
+                                                <i class="bi bi-calendar me-1"></i>
+
+                                                @cita.FechaHoraInicio.ToString(
+                                                    "dd MMM yyyy",
+                                                    cultura)
+
+                                                <span class="mx-2">•</span>
+
+                                                <i class="bi bi-clock me-1"></i>
+
+                                                @cita.FechaHoraInicio.ToString(
+                                                    "hh:mm tt",
+                                                    cultura)
+
+                                            </p>
+
+
+                                            @if (!string.IsNullOrEmpty(cita.Motivo))
+                                            {
+                                                <p class="small mb-0 text-muted">
+                                                    @cita.Motivo
+                                                </p>
+                                            }
+
+                                        </div>
+
+
+                                        <!-- ESTADO -->
+                                        <span class="badge
+                                            @(cita.Estado == "Completada"
+                                                ? "bg-success"
+                                                : cita.Estado == "Confirmada"
+                                                    ? "bg-primary"
+                                                    : "bg-warning text-dark")">
+
+                                            @cita.Estado
+
+                                        </span>
+
+                                    </div>
+
+                                </div>
+                            }
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+
+                            <p class="text-muted mb-0 small">
+                                No hay citas registradas
+                            </p>
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+
+            <!-- ========================================================
+                 RESULTADOS RECIENTES
+                 ======================================================== -->
+
+            <div class="card border-0 shadow-sm"
+                 style="border-radius: 14px;">
+
+                <div class="card-header border-0 py-3 px-4"
+                     style="background: #f8fafc;">
+
+                    <h5 class="fw-bold mb-0"
+                        style="color: #0f172a;">
+
+                        <i class="bi bi-file-earmark-medical me-2"
+                           style="color: var(--blue-700);"></i>
+
+                        Resultados Recientes
+
+                    </h5>
+
+                </div>
+
+
+                <div class="card-body p-0">
+
+                    @if (Model.Resultados.Any())
+                    {
+                        <div class="list-group list-group-flush">
+
+                            @foreach (var resultado in Model.Resultados)
+                            {
+                                <div class="list-group-item border-0 p-3 border-bottom">
+
+                                    <div class="d-flex justify-content-between align-items-start">
+
+                                        <div>
+
+                                            <h6 class="fw-bold mb-1">
+                                                @resultado.NombreExamen
+                                            </h6>
+
+                                            <p class="small text-muted mb-1">
+
+                                                <i class="bi bi-calendar me-1"></i>
+
+                                                @resultado.Fecha.ToString(
+                                                    "dd MMM yyyy",
+                                                    cultura)
+
+                                                <span class="mx-2">•</span>
+
+                                                <span class="badge
+                                                    @(resultado.Pendiente
+                                                        ? "bg-warning text-dark"
+                                                        : "bg-success")">
+
+                                                    @(resultado.Pendiente
+                                                        ? "Pendiente"
+                                                        : "Finalizado")
+
+                                                </span>
+
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            }
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+
+                            <p class="text-muted mb-0 small">
+                                No hay resultados registrados
+                            </p>
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+}
+else if (Model.PacienteSeleccionadoId.HasValue)
+{
+    <div class="text-center py-5">
+
+        <i class="bi bi-person-x"
+           style="font-size: 4rem; color: #cbd5e1;"></i>
+
+        <h5 class="fw-bold mt-3 mb-2">
+            Paciente no encontrado
+        </h5>
+
+        <p class="text-muted">
+            No se encontró un paciente con el ID especificado
+        </p>
+
+    </div>
+}
+else
+{
+    <div class="text-center py-5">
+
+        <i class="bi bi-clipboard-pulse"
+           style="font-size: 4rem; color: #cbd5e1;"></i>
+
+        <h5 class="fw-bold mt-3 mb-2">
+            Seleccione un paciente
+        </h5>
+
+        <p class="text-muted">
+            Use el selector superior para ver el historial médico de un paciente
+        </p>
+
+    </div>
+}
+```

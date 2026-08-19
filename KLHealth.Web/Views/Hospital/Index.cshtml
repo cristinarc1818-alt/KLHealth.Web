@@ -1,0 +1,275 @@
+﻿@model KLHealth.Web.Models.ViewModels.HospitalInfoViewModel
+@{
+    Layout = "_LayoutPaciente";
+}
+
+<!-- HERO BANNER -->
+<div class="hero-banner position-relative mb-5 overflow-hidden" style="border-radius: 16px; background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white;">
+    <div class="position-absolute top-0 end-0 w-50 h-100" style="background: url('https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=800&h=500&fit=crop') center/cover; opacity: 0.3;"></div>
+    <div class="position-relative p-5" style="z-index: 2; max-width: 600px;">
+        <div class="small fw-bold mb-3" style="letter-spacing: 2px; opacity: 0.9;">K & L HEALTH</div>
+        <h1 class="fw-bold mb-3" style="font-size: 2.5rem; line-height: 1.1;">Precisión Clínica.<br>Cuidado Empático.</h1>
+        <p class="mb-4" style="font-size: 1rem; line-height: 1.6; opacity: 0.95;">
+            En K & L Health, combinamos tecnología médica de vanguardia con un enfoque centrado en el paciente. Nuestra instalación está diseñada para brindar un ambiente sereno que facilite la curación y reduzca el estrés de los procesos médicos.
+        </p>
+        <a href="#contacto" class="btn px-4 py-2" style="background: white; color: #1e3a8a; border-radius: 10px; font-weight: 600; text-decoration: none;">
+            <i class="bi bi-play-circle me-2"></i>Ver Nuestra Historia
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-5" id="contacto">
+    <!-- Columna izquierda: Contacto y Ubicación -->
+    <div class="col-lg-5">
+        <div class="card border-0 h-100" style="background: #f8fafc; border-radius: 14px;">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4" style="color: #1e3a8a;">
+                    <i class="bi bi-geo-alt-fill me-2"></i>Contacto y Ubicación
+                </h5>
+
+                <div class="mb-4 p-3" style="background: white; border-radius: 10px;">
+                    <div class="d-flex gap-3">
+                        <i class="bi bi-geo-alt text-primary" style="font-size: 1.3rem;"></i>
+                        <div>
+                            <div class="fw-semibold" style="font-size: 0.9rem;">Campus Principal</div>
+                            <div class="text-muted small">@Model.Direccion</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4 p-3" style="background: white; border-radius: 10px;">
+                    <div class="d-flex gap-3">
+                        <i class="bi bi-telephone text-primary" style="font-size: 1.3rem;"></i>
+                        <div>
+                            <div class="fw-semibold" style="font-size: 0.9rem;">Consultas Generales</div>
+                            <div class="text-muted small">@Model.TelefonoGeneral</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3" style="background: #fee2e2; border-radius: 10px; border-left: 4px solid #dc2626;">
+                    <div class="d-flex gap-3">
+                        <i class="bi bi-asterisk text-danger" style="font-size: 1.3rem;"></i>
+                        <div>
+                            <div class="fw-semibold text-danger" style="font-size: 0.9rem;">Emergencias (24/7)</div>
+                            <div class="text-danger small fw-bold">@Model.TelefonoEmergencias</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna derecha: Mapa simulado -->
+    <div class="col-lg-7">
+        <div class="card border-0 h-100" style="background: #e2e8f0; border-radius: 14px; min-height: 350px;">
+            <div class="card-body p-0 position-relative overflow-hidden" style="border-radius: 14px;">
+                <!-- Mapa simulado con estilo -->
+                <div style="background: linear-gradient(135deg, #cbd5e1 0%, #e2e8f0 100%); height: 100%; min-height: 350px; display: flex; align-items: center; justify-content: center;">
+                    <div class="text-center">
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                             style="width: 60px; height: 60px; background: #1e3a8a; color: white; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);">
+                            <i class="bi bi-geo-alt-fill" style="font-size: 1.8rem;"></i>
+                        </div>
+                        <div class="fw-bold" style="color: #1e3a8a;">Campus Principal K & L Health</div>
+                        <div class="small text-muted">San Francisco, CA</div>
+                    </div>
+                </div>
+                <!-- Botones de zoom simulados -->
+                <div class="position-absolute bottom-0 end-0 m-3 d-flex flex-column gap-2">
+                    <button class="btn btn-light btn-sm" style="width: 36px; height: 36px; border-radius: 50%;"><i class="bi bi-plus"></i></button>
+                    <button class="btn btn-light btn-sm" style="width: 36px; height: 36px; border-radius: 50%;"><i class="bi bi-dash"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- NUESTRAS ESPECIALIDADES -->
+<div class="mb-5">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <h2 class="fw-bold mb-1" style="font-size: 1.75rem; color: #0f172a;">Nuestras Especialidades</h2>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">Excelencia clínica de clase mundial en múltiples disciplinas.</p>
+        </div>
+        <a href="@Url.Action("Index", "Especialidades")" class="text-decoration-none fw-semibold" style="color: #1e3a8a; font-size: 0.9rem;">
+            Todos los Departamentos <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+
+    @if (Model.EspecialidadesDestacadas.Any())
+    {
+        <div class="row g-3">
+            @foreach (var esp in Model.EspecialidadesDestacadas.Take(4))
+            {
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 h-100" style="background: #f8fafc; border-radius: 12px; transition: all 0.2s ease;">
+                        <div class="card-body p-4">
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                                 style="width: 48px; height: 48px; background: #dbeafe; color: #1e3a8a;">
+                                <i class="bi @esp.Icono" style="font-size: 1.3rem;"></i>
+                            </div>
+                            <h6 class="fw-bold mb-2" style="font-size: 1rem; color: #0f172a;">@esp.Nombre</h6>
+                            <p class="text-muted small mb-0" style="font-size: 0.82rem; line-height: 1.4;">
+                                @(esp.Descripcion?.Length > 60 ? esp.Descripcion.Substring(0, 60) + "..." : esp.Descripcion ?? "Atención especializada.")
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- HORARIOS Y SEGUROS -->
+<div class="row g-4 mb-5">
+    <!-- Horarios de Atención -->
+    <div class="col-lg-6">
+        <div class="card border-0 h-100" style="background: #f8fafc; border-radius: 14px;">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4" style="color: #0f172a;">
+                    <i class="bi bi-clock me-2" style="color: #1e3a8a;"></i>Horarios de Atención
+                </h5>
+                <div class="d-flex justify-content-between py-2" style="border-bottom: 1px solid #e2e8f0;">
+                    <span class="text-muted">Lunes - Viernes</span>
+                    <span class="fw-bold" style="color: #1e3a8a;">07:00 AM - 09:00 PM</span>
+                </div>
+                <div class="d-flex justify-content-between py-2" style="border-bottom: 1px solid #e2e8f0;">
+                    <span class="text-muted">Sábado</span>
+                    <span class="fw-bold" style="color: #1e3a8a;">08:00 AM - 06:00 PM</span>
+                </div>
+                <div class="d-flex justify-content-between py-2" style="border-bottom: 1px solid #e2e8f0;">
+                    <span class="text-muted">Domingo</span>
+                    <span class="fw-bold" style="color: #1e3a8a;">09:00 AM - 02:00 PM</span>
+                </div>
+                <div class="d-flex justify-content-between py-2">
+                    <span class="text-danger fw-semibold">Sala de Emergencias</span>
+                    <span class="fw-bold text-danger">Abierto 24/7</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seguros Aceptados -->
+    <div class="col-lg-6">
+        <div class="card border-0 h-100" style="background: #f8fafc; border-radius: 14px;">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-2" style="color: #0f172a;">
+                    <i class="bi bi-shield-check me-2" style="color: #1e3a8a;"></i>Seguros Aceptados
+                </h5>
+                <p class="text-muted small mb-4">Nos asociamos con los principales proveedores para asegurar una amplia accesibilidad de cobertura.</p>
+
+                <div class="row g-2">
+                    <div class="col-6 col-md-4">
+                        <div class="p-3 text-center" style="background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <div class="fw-bold small" style="color: #1e3a8a;">BLUE CROSS</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">PROVIDER</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="p-3 text-center" style="background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <div class="fw-bold small" style="color: #1e3a8a;">AETNA CARE</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">HEALTHNET</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="p-3 text-center" style="background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <div class="fw-bold small" style="color: #1e3a8a;">UNITEDMED</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">PREMIUM</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="p-3 text-center" style="background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <div class="fw-bold small" style="color: #1e3a8a;">CIGNAPLUS</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">NETWORK</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="p-3 text-center" style="background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <div class="fw-bold small" style="color: #1e3a8a;">KAISERMED</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">ADVANCED</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="p-3 text-center" style="background: white; border-radius: 8px; border: 2px dashed #cbd5e1;">
+                            <div class="fw-bold small" style="color: #64748b;">+12 más</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PREGUNTAS FRECUENTES -->
+<div class="mb-5">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold mb-2" style="font-size: 1.75rem; color: #0f172a;">Preguntas Frecuentes</h2>
+        <p class="text-muted" style="font-size: 0.95rem;">Todo lo que necesita saber antes de su visita.</p>
+    </div>
+
+    <div class="accordion" id="faqAccordion" style="max-width: 800px; margin: 0 auto;">
+        <div class="accordion-item border-0 mb-3" style="border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0 !important;">
+            <h2 class="accordion-header">
+                <button class="accordion-button fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq1" style="font-size: 0.95rem; color: #0f172a;">
+                    ¿Qué documentos debo traer para mi primera visita?
+                </button>
+            </h2>
+            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                <div class="accordion-body text-muted" style="font-size: 0.9rem; line-height: 1.6;">
+                    Para su primera visita, le recomendamos traer su documento de identificación, tarjeta de seguro médico, y cualquier registro médico o resultado de exámenes recientes que pueda ser relevante para su consulta.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item border-0 mb-3" style="border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0 !important;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq2" style="font-size: 0.95rem; color: #0f172a;">
+                    ¿Cómo solicito una receta médica?
+                </button>
+            </h2>
+            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body text-muted" style="font-size: 0.9rem; line-height: 1.6;">
+                    Puede solicitar la renovación de recetas a través de su portal de paciente en la sección "Mis Citas" o contactando directamente a su médico de cabecera. Las recetas de control se procesan en un plazo de 24 a 48 horas hábiles.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item border-0 mb-3" style="border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0 !important;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq3" style="font-size: 0.95rem; color: #0f172a;">
+                    ¿Hay estacionamiento disponible en el lugar?
+                </button>
+            </h2>
+            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body text-muted" style="font-size: 0.9rem; line-height: 1.6;">
+                    Sí, contamos con estacionamiento gratuito para pacientes en el nivel -1 y -2 del edificio principal. También disponemos de valet parking en la entrada principal con un costo simbólico de $5.00.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BANNER INFERIOR DE CONTACTO -->
+<div class="card border-0 overflow-hidden mb-5" style="background: #1e3a8a; border-radius: 16px;">
+    <div class="card-body p-5 text-center position-relative">
+        <i class="bi bi-chat-square-heart position-absolute top-0 end-0 me-4 mt-n3"
+           style="font-size: 10rem; opacity: 0.08; color: white;"></i>
+        <div class="position-relative" style="z-index: 2;">
+            <h3 class="fw-bold mb-3" style="color: white; font-size: 1.75rem;">¿Necesita más información?</h3>
+            <p class="mb-4 mx-auto" style="color: rgba(255,255,255,0.9); font-size: 1rem; line-height: 1.6; max-width: 600px;">
+                Nuestro equipo de atención al paciente está disponible 24/7 para ayudarle con sus dudas o necesidades de reserva.
+            </p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="@Url.Action("Index", "Notificaciones")" class="btn px-4 py-2"
+                   style="background: white; color: #1e3a8a; border-radius: 10px; font-weight: 600; text-decoration: none;">
+                    <i class="bi bi-chat-dots me-2"></i>Contactar Soporte
+                </a>
+                <a href="#" class="btn px-4 py-2"
+                   style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; font-weight: 500; text-decoration: none;">
+                    <i class="bi bi-file-earmark-pdf me-2"></i>Descargar Guía del Paciente
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

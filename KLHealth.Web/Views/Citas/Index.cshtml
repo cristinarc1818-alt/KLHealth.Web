@@ -1,0 +1,488 @@
+﻿@model KLHealth.Web.Models.ViewModels.CitasListViewModel
+@{
+    Layout = "_LayoutPaciente";
+    var cultura = new System.Globalization.CultureInfo("es-ES");
+}
+
+<!-- Header -->
+<div class="page-header-custom mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="fw-bold mb-1" style="font-size: 1.8rem; color: #0f172a; letter-spacing: -0.5px;">Mis Citas</h1>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">Consulta y administra todas tus citas médicas.</p>
+        </div>
+
+        <a href="@Url.Action("Agendar", "Citas")"
+           class="btn btn-primary d-none d-md-inline-flex align-items-center gap-2 px-4 py-2"
+           style="background: #1e3a8a; border-color: #1e3a8a; border-radius: 10px; font-size: 0.9rem; font-weight: 500;">
+            <i class="bi bi-plus-lg"></i>
+            <span>Nueva Cita</span>
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success border-0 shadow-sm mb-4 d-flex align-items-center gap-2"
+         style="border-radius: 10px; font-size: 0.9rem; background: #f0fdf4; color: #166534;">
+        <i class="bi bi-check-circle-fill"></i> <span>@TempData["Success"]</span>
+    </div>
+}
+
+<!-- FILTROS/TABS -->
+<div class="mb-4">
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="@Url.Action("Index", "Citas", new { filtro = "Todas" })"
+           class="filter-tab @(Model.FiltroActual == "Todas" ? "active" : "")">
+            Todas <span class="badge ms-1">@Model.TotalCitas</span>
+        </a>
+
+        <a href="@Url.Action("Index", "Citas", new { filtro = "Pendiente" })"
+           class="filter-tab @(Model.FiltroActual == "Pendiente" ? "active" : "")">
+            Pendientes <span class="badge ms-1">@Model.TotalPendientes</span>
+        </a>
+
+        <a href="@Url.Action("Index", "Citas", new { filtro = "Confirmada" })"
+           class="filter-tab @(Model.FiltroActual == "Confirmada" ? "active" : "")">
+            Confirmadas <span class="badge ms-1">@Model.TotalConfirmadas</span>
+        </a>
+
+        <a href="@Url.Action("Index", "Citas", new { filtro = "Completada" })"
+           class="filter-tab @(Model.FiltroActual == "Completada" ? "active" : "")">
+            Completadas <span class="badge ms-1">@Model.TotalCompletadas</span>
+        </a>
+
+        <a href="@Url.Action("Index", "Citas", new { filtro = "Cancelada" })"
+           class="filter-tab @(Model.FiltroActual == "Cancelada" ? "active" : "")">
+            Canceladas <span class="badge ms-1">@Model.TotalCanceladas</span>
+        </a>
+    </div>
+</div>
+
+<!-- LISTA DE CITAS -->
+@if (Model.TodasLasCitas.Any())
+{
+    <div class="row g-4">
+        @foreach (var cita in Model.TodasLasCitas)
+        {
+            var (bgColor, textColor) = cita.Estado switch
+            {
+                "Confirmada" => ("#dcfce7", "#166534"),
+                "Pendiente" => ("#fef3c7", "#92400e"),
+                "Cancelada" => ("#fee2e2", "#991b1b"),
+                "Completada" => ("#dbeafe", "#1e40af"),
+                _ => ("#f1f5f9", "#475569")
+            };
+
+            var esVirtual = cita.Tipo == "Virtual";
+            var iconoUbicacion = esVirtual ? "bi-link-45deg" : "bi-geo-alt-fill";
+            var textoUbicacion = esVirtual
+                ? "Consulta virtual (Enlace pronto)"
+                : cita.Sala ?? "Por definir";
+
+            var iconoFecha = esVirtual
+                ? "bi-camera-video-fill"
+                : "bi-calendar-event-fill";
+
+            var esFutura = cita.FechaHoraInicio >= DateTime.Now;
+
+            // ==========================================================
+            // CORRECCIÓN DEL NOMBRE DEL MÉDICO
+            // ==========================================================
+            var nombreMedico = cita.Medico?.Usuario?.NombreCompleto?.Trim() ?? "";
+            var tituloMedico = cita.Medico?.Titulo?.Trim() ?? "";
+
+            nombreMedico = nombreMedico
+                .Replace("Dr. ", "", StringComparison.OrdinalIgnoreCase)
+                .Replace("Dra. ", "", StringComparison.OrdinalIgnoreCase)
+                .Replace("Dr ", "", StringComparison.OrdinalIgnoreCase)
+                .Replace("Dra ", "", StringComparison.OrdinalIgnoreCase)
+                .Trim();
+
+            tituloMedico = tituloMedico
+                .Replace("Dr. Dr.", "Dr.", StringComparison.OrdinalIgnoreCase)
+                .Replace("Dra. Dra.", "Dra.", StringComparison.OrdinalIgnoreCase)
+                .Trim();
+
+            var nombreMedicoMostrar = string.IsNullOrWhiteSpace(tituloMedico)
+                ? nombreMedico
+                : $"{tituloMedico} {nombreMedico}".Trim();
+
+            <div class="col-md-6 col-xl-4">
+                <div class="cita-card-professional @(esFutura ? "" : "opacity-75")">
+                    <!-- HEADER DE LA CITA -->
+                    <div class="cita-card-header">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="d-flex gap-3">
+                                <div class="cita-doctor-avatar">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0"
+                                        style="font-size: 1rem; line-height: 1.3; color: #0f172a;">
+                                        @nombreMedicoMostrar
+                                    </h5>
+                                    <div style="font-size: 0.82rem; color: #64748b;">
+                                        @cita.Medico?.Especialidad?.Nombre
+                                    </div>
+                                </div>
+                            </div>
+
+                            <span class="badge rounded-pill px-2 py-1"
+                                  style="background: @bgColor; color: @textColor; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">
+                                @cita.Estado
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- INFORMACIÓN DE LA CITA -->
+                    <div class="cita-card-body">
+                        <div class="cita-info-row">
+                            <i class="bi @iconoFecha" style="color: #1e3a8a;"></i>
+                            <span>
+                                @cita.FechaHoraInicio.ToString("dd MMMM yyyy, hh:mm tt", cultura)
+                            </span>
+                        </div>
+
+                        <div class="cita-info-row">
+                            <i class="bi @iconoUbicacion" style="color: #1e3a8a;"></i>
+                            <span>@textoUbicacion</span>
+                        </div>
+                    </div>
+
+                    <!-- BOTONES -->
+                    <div class="cita-card-footer">
+                        @if (cita.Estado == "Cancelada")
+                        {
+                            <div class="text-muted fst-italic mb-3" style="font-size: 0.82rem;">
+                                <i class="bi bi-exclamation-circle me-1"></i>
+                                Cita cancelada
+                            </div>
+                            <a href="@Url.Action("Agendar", "Citas")"
+                               class="btn btn-outline-primary w-100 py-2"
+                               style="border-radius: 8px; font-size: 0.85rem; border-color: #1e3a8a; color: #1e3a8a;">
+                                <i class="bi bi-arrow-clockwise me-1"></i>
+                                Agendar nuevamente
+                            </a>
+                        }
+                        else if (cita.Estado == "Completada")
+                        {
+                            <a href="@Url.Action("Detalles", "Citas", new { id = cita.Id })"
+                               class="btn btn-outline-primary w-100 py-2"
+                               style="border-radius: 8px; font-size: 0.85rem; border-color: #1e3a8a; color: #1e3a8a;">
+                                <i class="bi bi-file-earmark-text me-1"></i>
+                                Ver Resumen
+                            </a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Detalles", "Citas", new { id = cita.Id })"
+                               class="btn btn-primary w-100 mb-2 py-2"
+                               style="background: #1e3a8a; border-color: #1e3a8a; border-radius: 8px; font-size: 0.88rem; font-weight: 500;">
+                                Ver detalles
+                            </a>
+
+                            @if (esFutura)
+                            {
+                                <div class="d-flex gap-2">
+                                    <a href="@Url.Action("Reprogramar", "Citas", new { id = cita.Id })"
+                                       class="btn btn-outline-secondary flex-fill py-2"
+                                       style="border-radius: 8px; font-size: 0.82rem; border-color: #e2e8f0; color: #475569;">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>
+                                        Reprogramar
+                                    </a>
+
+                                    <form method="post"
+                                          action="@Url.Action("Cancelar", "Citas", new { id = cita.Id })"
+                                          class="flex-fill"
+                                          onsubmit="return confirm('¿Estás seguro de cancelar esta cita?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit"
+                                                class="btn btn-outline-danger w-100 py-2"
+                                                style="border-radius: 8px; font-size: 0.82rem; border-color: #fee2e2; color: #dc2626;">
+                                            <i class="bi bi-x-circle me-1"></i>
+                                            Cancelar
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- PAGINACIÓN -->
+    @if (Model.TotalPaginas > 1)
+    {
+        <nav aria-label="Paginación de citas" class="mt-5 mb-4">
+            <ul class="pagination justify-content-center gap-2">
+                <li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
+                    <a class="page-link"
+                       href="@Url.Action("Index", "Citas", new { filtro = Model.FiltroActual, pagina = Model.PaginaActual - 1 })"
+                       style="border-radius: 8px; border-color: #e2e8f0; color: #475569; font-weight: 500;">
+                        <i class="bi bi-chevron-left me-1"></i>
+                        Anterior
+                    </a>
+                </li>
+
+                @for (int i = 1; i <= Model.TotalPaginas; i++)
+                {
+                    <li class="page-item @(i == Model.PaginaActual ? "active" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("Index", "Citas", new { filtro = Model.FiltroActual, pagina = i })"
+                           style="@(i == Model.PaginaActual
+                                                                 ? "background: #1e3a8a; border-color: #1e3a8a; color: white; border-radius: 8px; font-weight: 600;"
+                                                                 : "border-radius: 8px; border-color: #e2e8f0; color: #475569; font-weight: 500;")">
+                @i
+            </a>
+        </li>
+    }
+
+    <li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
+        <a class="page-link"
+           href="@Url.Action("Index", "Citas", new { filtro = Model.FiltroActual, pagina = Model.PaginaActual + 1 })"
+           style="border-radius: 8px; border-color: #e2e8f0; color: #475569; font-weight: 500;">
+            Siguiente
+            <i class="bi bi-chevron-right ms-1"></i>
+        </a>
+    </li>
+</ul>
+</nav>
+
+<div class="text-center mb-4">
+    <small class="text-muted" style="font-size: 0.85rem;">
+        <i class="bi bi-info-circle me-1"></i>
+        Mostrando
+        <strong>@Model.TodasLasCitas.Count</strong>
+        de
+        <strong>@Model.TotalRegistros</strong>
+        registros
+        (Página
+        <strong>@Model.PaginaActual</strong>
+        de
+        <strong>@Model.TotalPaginas</strong>)
+    </small>
+</div>
+    }
+}
+else
+{
+    <div class="empty-state-container">
+        <div class="empty-state-icon">
+            <i class="bi bi-calendar-plus"></i>
+        </div>
+
+        <h4 class="fw-bold text-dark mb-2">
+            No hay citas con este filtro
+        </h4>
+
+        <p class="text-muted mb-4" style="font-size: 0.95rem; max-width: 400px; margin: 0 auto;">
+            No se encontraron citas
+            @(Model.FiltroActual == "Todas"
+                ? ""
+                : $"con estado '{Model.FiltroActual}'").
+        </p>
+
+        <a href="@Url.Action("Index", "Citas")"
+           class="btn btn-outline-primary px-4 py-2"
+           style="border-radius: 10px; font-size: 0.9rem;">
+            <i class="bi bi-arrow-left me-2"></i>
+            Ver todas las citas
+        </a>
+    </div>
+}
+
+<!-- BOTÓN FLOTANTE -->
+<a href="@Url.Action("Agendar", "Citas")"
+   class="btn-floating-agendar"
+   title="Agendar nueva cita">
+    <i class="bi bi-plus-lg"></i>
+</a>
+
+@section Styles {
+    <style>
+        /* ==========================================================
+                                           TABS
+                ========================================================== */
+        .filter-tab {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.6rem 1.2rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            color: #475569;
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+            .filter-tab:hover {
+                background: #f8fafc;
+                border-color: #cbd5e1;
+                color: #1e3a8a;
+                text-decoration: none;
+            }
+
+            .filter-tab.active {
+                background: #1e3a8a;
+                border-color: #1e3a8a;
+                color: white;
+            }
+
+            .filter-tab .badge {
+                background: rgba(255, 255, 255, 0.3);
+                color: inherit;
+                font-size: 0.75rem;
+                padding: 0.2rem 0.5rem;
+                border-radius: 8px;
+            }
+
+            .filter-tab:not(.active) .badge {
+                background: #f1f5f9;
+                color: #64748b;
+            }
+
+        /* ==========================================================
+                                   TARJETAS DE CITAS
+                ========================================================== */
+        .cita-card-professional {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            overflow: hidden;
+            transition: all 0.25s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+            .cita-card-professional:hover {
+                box-shadow: 0 8px 24px rgba(30, 58, 138, 0.1);
+                transform: translateY(-3px);
+                border-color: #cbd5e1;
+            }
+
+            .cita-card-professional.opacity-75 {
+                opacity: 0.75;
+            }
+
+        .cita-card-header {
+            padding: 1.25rem 1.25rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .cita-doctor-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #dbeafe;
+            color: #1e3a8a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .cita-card-body {
+            padding: 1rem 1.25rem;
+            flex: 1;
+        }
+
+        .cita-info-row {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 0.6rem;
+            font-size: 0.85rem;
+            color: #334155;
+        }
+
+            .cita-info-row i {
+                font-size: 0.95rem;
+                width: 18px;
+                text-align: center;
+            }
+
+        .cita-card-footer {
+            padding: 1rem 1.25rem 1.25rem;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        /* ==========================================================
+                                   ESTADO VACÍO
+                ========================================================== */
+        .empty-state-container {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-state-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 4px 16px rgba(30, 58, 138, 0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: #1e3a8a;
+            font-size: 1.8rem;
+        }
+
+        /* ==========================================================
+                                   BOTÓN FLOTANTE
+                ========================================================== */
+        .btn-floating-agendar {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: #1e3a8a;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            text-decoration: none;
+            box-shadow: 0 6px 20px rgba(30, 58, 138, 0.4);
+            transition: all 0.25s ease;
+            z-index: 1000;
+        }
+
+            .btn-floating-agendar:hover {
+                background: #1e40af;
+                transform: scale(1.1) rotate(90deg);
+                color: white;
+                box-shadow: 0 8px 24px rgba(30, 58, 138, 0.5);
+            }
+
+        /* ==========================================================
+                                   RESPONSIVE
+                ========================================================== */
+        @@media (max-width: 768px) {
+            .btn-floating-agendar {
+                bottom: 1.25rem;
+                right: 1.25rem;
+                width: 52px;
+                height: 52px;
+                font-size: 1.3rem;
+            }
+
+            .filter-tab {
+                padding: 0.5rem 0.9rem;
+                font-size: 0.82rem;
+            }
+        }
+    </style>
+}

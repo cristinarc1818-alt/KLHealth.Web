@@ -1,0 +1,234 @@
+﻿@model KLHealth.Web.Models.ViewModels.AdminPacientesViewModel
+@{
+    Layout = "_LayoutAdmin";
+}
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="fw-bold mb-1" style="font-size: 1.75rem; color: var(--blue-700); letter-spacing: -0.5px;">Gestión de Pacientes</h1>
+        <p class="text-muted mb-0" style="font-size: 0.9rem;">Administra la información de los pacientes registrados.</p>
+    </div>
+    <a href="@Url.Action("Crear", "AdminPacientes")" class="btn btn-primary d-flex align-items-center gap-2 px-4 py-2" style="background: var(--blue-900); border-color: var(--blue-900); border-radius: 10px; font-size: 0.9rem; font-weight: 500;">
+        <i class="bi bi-plus-lg"></i>
+        <span>Nuevo Paciente</span>
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success border-0 shadow-sm mb-4 d-flex align-items-center gap-2" style="border-radius: 10px; font-size: 0.9rem; background: #f0fdf4; color: #166534;">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger border-0 shadow-sm mb-4 d-flex align-items-center gap-2" style="border-radius: 10px; font-size: 0.9rem; background: #fef2f2; color: #991b1b;">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>@TempData["Error"]</span>
+    </div>
+}
+
+<!-- BARRA DE BÚSQUEDA -->
+<div class="card border-0 mb-4" style="background: #f8fafc; border-radius: 12px;">
+    <div class="card-body p-4">
+        <form asp-action="Index" method="get">
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <input type="text" name="busqueda" class="form-control"
+                           placeholder="Buscar por nombre, email o identificación..."
+                           value="@Model.Busqueda"
+                           style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100 py-2"
+                            style="background: var(--blue-900); border-color: var(--blue-900); border-radius: 10px; font-weight: 600;">
+                        <i class="bi bi-search me-1"></i>Buscar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- TABLA DE PACIENTES -->
+@if (Model.Pacientes != null && Model.Pacientes.Any())
+{
+    <div class="card border-0">
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; border: none;">Paciente</th>
+                            <th style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; border: none;">Identificación</th>
+                            <th style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; border: none;">Contacto</th>
+                            <th style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; border: none;">Fecha Nacimiento</th>
+                            <th style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; border: none;">Total Citas</th>
+                            <th style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; border: none; text-align: center;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var paciente in Model.Pacientes)
+                        {
+                            // LÓGICA SEGURA PARA INICIALES - Sin errores de índice
+                            var nombrePaciente = paciente.NombreCompleto ?? "Usuario";
+                            var palabrasPaciente = nombrePaciente.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            var inicial1 = palabrasPaciente.Length > 0 && palabrasPaciente[0].Length > 0 ? palabrasPaciente[0][0] : '?';
+                            var inicial2 = palabrasPaciente.Length > 1 && palabrasPaciente[1].Length > 0 ? palabrasPaciente[1][0] : '?';
+                            var iniciales = $"{inicial1}{inicial2}".ToUpper();
+
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="avatar-circle">@iniciales</div>
+                                        <div>
+                                            <div class="fw-semibold text-dark" style="font-size: 0.9rem;">@paciente.NombreCompleto</div>
+                                            <div class="text-muted" style="font-size: 0.72rem;">@paciente.Email</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="text-dark" style="font-size: 0.85rem;">@paciente.NumeroIdentificacion</span>
+                                </td>
+                                <td>
+                                    <div class="text-dark" style="font-size: 0.85rem;">
+                                        <i class="bi bi-telephone me-1 text-muted"></i>@paciente.Telefono
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="text-muted" style="font-size: 0.85rem;">@paciente.FechaNacimiento.ToString("dd/MM/yyyy")</span>
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill px-3 py-2 @(paciente.TotalCitas > 0 ? "bg-primary bg-opacity-10 text-primary" : "bg-secondary bg-opacity-10 text-secondary")" style="font-size: 0.72rem;">
+                                        @paciente.TotalCitas cita@(paciente.TotalCitas != 1 ? "s" : "")
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <a href="@Url.Action("Detalles", "AdminPacientes", new { id = paciente.Id })" class="btn btn-sm btn-outline-primary" style="border-radius: 8px; font-size: 0.8rem;" title="Ver detalles">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="@Url.Action("Editar", "AdminPacientes", new { id = paciente.Id })" class="btn btn-sm btn-outline-secondary" style="border-radius: 8px; font-size: 0.8rem;" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form method="post" action="@Url.Action("Eliminar", "AdminPacientes", new { id = paciente.Id })" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar este paciente? Esta acción no se puede deshacer.');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 8px; font-size: 0.8rem;" title="Eliminar">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAGINACIÓN -->
+            @if (Model.TotalPaginas > 1)
+            {
+                <nav aria-label="Paginación de pacientes" class="mt-4">
+                    <ul class="pagination justify-content-center gap-2">
+                        <li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
+                            <a class="page-link"
+                               href="@Url.Action("Index", "AdminPacientes", new { busqueda = Model.Busqueda, pagina = Model.PaginaActual - 1 })"
+                               style="border-radius: 8px; border-color: #e2e8f0; color: #475569;">
+                                <i class="bi bi-chevron-left"></i> Anterior
+                            </a>
+                        </li>
+
+                        @for (int i = 1; i <= Model.TotalPaginas; i++)
+                        {
+                            <li class="page-item @(i == Model.PaginaActual ? "active" : "")">
+                                <a class="page-link"
+                                   href="@Url.Action("Index", "AdminPacientes", new { busqueda = Model.Busqueda, pagina = i })"
+                                   style="@(i == Model.PaginaActual ? "background: var(--blue-900); border-color: var(--blue-900); color: white; border-radius: 8px;" : "border-radius: 8px; border-color: #e2e8f0; color: #475569;")">
+                                    @i
+                                </a>
+                            </li>
+                        }
+
+                        <li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
+                            <a class="page-link"
+                               href="@Url.Action("Index", "AdminPacientes", new { busqueda = Model.Busqueda, pagina = Model.PaginaActual + 1 })"
+                               style="border-radius: 8px; border-color: #e2e8f0; color: #475569;">
+                                Siguiente <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div class="text-center mt-2">
+                    <small class="text-muted" style="font-size: 0.8rem;">
+                        Mostrando @Model.Pacientes.Count de @Model.TotalRegistros registros
+                        (Página @Model.PaginaActual de @Model.TotalPaginas)
+                    </small>
+                </div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="empty-state-container">
+        <div class="empty-state-icon">
+            <i class="bi bi-people"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-2">No se encontraron pacientes</h4>
+        <p class="text-muted mb-4" style="font-size: 0.95rem;">
+            @(string.IsNullOrEmpty(Model.Busqueda)
+                ? "No hay pacientes registrados en el sistema."
+                : "Intenta con otros términos de búsqueda.")
+        </p>
+        @if (!string.IsNullOrEmpty(Model.Busqueda))
+        {
+            <a href="@Url.Action("Index", "AdminPacientes")" class="btn btn-primary px-4 py-2" style="border-radius: 10px;">
+                <i class="bi bi-x-circle me-2"></i>Limpiar búsqueda
+            </a>
+        }
+    </div>
+}
+
+@section Styles {
+    <style>
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--blue-100);
+            color: var(--blue-700);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .empty-state-container {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-state-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 4px 16px rgba(30, 58, 138, 0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: var(--blue-700);
+            font-size: 1.8rem;
+        }
+    </style>
+}

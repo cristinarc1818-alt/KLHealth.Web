@@ -1,0 +1,177 @@
+﻿@model KLHealth.Web.Models.ViewModels.EditarPerfilViewModel
+@{
+    Layout = "_LayoutPaciente";
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <a href="@Url.Action("Index", "Perfil")" class="btn btn-outline-secondary mb-3" style="border-radius: 8px; border-color: #e2e8f0;">
+        <i class="bi bi-arrow-left me-2"></i>Volver al Perfil
+    </a>
+
+    <h1 class="fw-bold mb-1" style="font-size: 2rem; color: #0f172a; letter-spacing: -0.5px;">Editar Perfil</h1>
+    <p class="text-muted mb-0" style="font-size: 0.95rem;">Actualice su información personal y datos de contacto.</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm" style="border-radius: 14px;">
+            <div class="card-body p-4">
+                <form asp-action="Editar" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="UsuarioId" />
+                    <input type="hidden" asp-for="PacienteId" />
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="border-radius: 10px;"></div>
+
+                    <!-- Campos de solo lectura -->
+                    <div class="mb-4 pb-4" style="border-bottom: 1px solid #e2e8f0;">
+                        <h5 class="fw-bold mb-3" style="color: #64748b; font-size: 0.9rem;">
+                            <i class="bi bi-lock me-2"></i>Información de Solo Lectura
+                        </h5>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                    Nombre Completo
+                                </label>
+                                <div class="form-control-plaintext fw-semibold px-3 py-2" style="background: #f8fafc; border-radius: 8px; color: #0f172a;">
+                                    @Model.NombreCompleto
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                    Correo Electrónico
+                                </label>
+                                <div class="form-control-plaintext fw-semibold px-3 py-2" style="background: #f8fafc; border-radius: 8px; color: #0f172a;">
+                                    @Model.Email
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                    ID del Paciente
+                                </label>
+                                <div class="form-control-plaintext fw-semibold px-3 py-2" style="background: #f8fafc; border-radius: 8px; color: #0f172a;">
+                                    @(Model.NumeroIdentificacion ?? "N/A")
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Campos editables -->
+                    <div class="mb-4">
+                        <h5 class="fw-bold mb-3" style="color: #0f172a; font-size: 0.9rem;">
+                            <i class="bi bi-pencil me-2" style="color: #1e3a8a;"></i>Información Editable
+                        </h5>
+
+                        <div class="row g-3">
+                            <!-- Teléfono -->
+                            <div class="col-md-6">
+                                <label asp-for="Telefono" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                    <i class="bi bi-telephone me-1"></i>Número de Teléfono
+                                </label>
+                                <input asp-for="Telefono" class="form-control" placeholder="+1 (555) 000-0000"
+                                       style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                                <span asp-validation-for="Telefono" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Fecha de Nacimiento -->
+                            <div class="col-md-6">
+                                <label asp-for="FechaNacimiento" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                    <i class="bi bi-calendar me-1"></i>Fecha de Nacimiento
+                                </label>
+                                <input asp-for="FechaNacimiento" type="date" class="form-control"
+                                       style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                                <span asp-validation-for="FechaNacimiento" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Dirección -->
+                            <div class="col-12">
+                                <label asp-for="Direccion" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                    <i class="bi bi-geo-alt me-1"></i>Dirección
+                                </label>
+                                <input asp-for="Direccion" class="form-control" placeholder="Calle, número, barrio..."
+                                       style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                                <span asp-validation-for="Direccion" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Ciudad -->
+                            <div class="col-md-6">
+                                <label asp-for="Ciudad" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                    <i class="bi bi-building me-1"></i>Ciudad
+                                </label>
+                                <input asp-for="Ciudad" class="form-control" placeholder="Ej: San José"
+                                       style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                                <span asp-validation-for="Ciudad" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Código Postal -->
+                            <div class="col-md-6">
+                                <label asp-for="CodigoPostal" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                    <i class="bi bi-mailbox me-1"></i>Código Postal
+                                </label>
+                                <input asp-for="CodigoPostal" class="form-control" placeholder="Ej: 10101"
+                                       style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                                <span asp-validation-for="CodigoPostal" class="text-danger small"></span>
+                            </div>
+
+                            <!-- País -->
+                            <div class="col-md-6">
+                                <label asp-for="Pais" class="form-label fw-semibold" style="font-size: 0.85rem;">
+                                    <i class="bi bi-globe me-1"></i>País
+                                </label>
+                                <input asp-for="Pais" class="form-control" placeholder="Ej: Costa Rica"
+                                       style="border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;">
+                                <span asp-validation-for="Pais" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="submit" class="btn px-4 py-2" style="background: #1e3a8a; color: white; border-radius: 10px; font-weight: 600;">
+                            <i class="bi bi-check-circle me-2"></i>Guardar Cambios
+                        </button>
+                        <a href="@Url.Action("Index", "Perfil")" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 10px;">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel lateral informativo -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm" style="border-radius: 14px; background: #eff6ff; border-left: 4px solid #1e3a8a;">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-2" style="color: #1e3a8a; font-size: 0.9rem;">
+                    <i class="bi bi-info-circle me-1"></i>Información Importante
+                </h6>
+                <p class="mb-0 small" style="color: #475569; line-height: 1.6; font-size: 0.85rem;">
+                    Los campos de nombre completo, correo electrónico e ID del paciente no pueden modificarse desde aquí.
+                    Para cambios en estos datos, por favor contacte a la administración del hospital.
+                </p>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mt-3" style="border-radius: 14px; background: #fef3c7; border-left: 4px solid #f59e0b;">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-2" style="color: #92400e; font-size: 0.9rem;">
+                    <i class="bi bi-exclamation-triangle me-1"></i>Validaciones
+                </h6>
+                <ul class="mb-0 small" style="color: #78350f; line-height: 1.6; font-size: 0.82rem; padding-left: 1.2rem;">
+                    <li>El teléfono debe tener un formato válido</li>
+                    <li>La fecha de nacimiento es obligatoria</li>
+                    <li>La dirección no puede exceder 200 caracteres</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
